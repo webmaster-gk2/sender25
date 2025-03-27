@@ -47,7 +47,9 @@ class Organization < ApplicationRecord
   has_many :domains, as: :owner, dependent: :destroy
   has_many :organization_ip_pools, dependent: :destroy
   has_many :ip_pools, through: :organization_ip_pools
-  has_many :ip_pool_rules, dependent: :destroy, as: :owner
+  # Sender25 - Removed relationship for ip_pool_rules to use rules
+  # has_many :ip_pool_rules, dependent: :destroy, as: :owner
+  has_many :rules, dependent: :destroy, as: :owner
 
   after_create do
     if IPPool.default

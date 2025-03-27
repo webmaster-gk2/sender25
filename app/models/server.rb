@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Sender25 - Added custom spf field
 # == Schema Information
 #
 # Table name: servers
@@ -29,6 +30,7 @@
 #  suspension_reason                  :string(255)
 #  token                              :string(255)
 #  uuid                               :string(255)
+#  custom_spf                         :string(255)
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  ip_pool_id                         :integer
@@ -64,15 +66,17 @@ class Server < ApplicationRecord
   has_many :webhooks, dependent: :destroy
   has_many :webhook_requests, dependent: :destroy
   has_many :track_domains, dependent: :destroy
-  has_many :ip_pool_rules, dependent: :destroy, as: :owner
+  # Sender25 - Removed relationship ip_pool_rules and added rules
+  # has_many :ip_pool_rules, dependent: :destroy, as: :owner
+  has_many :rules, dependent: :destroy, as: :owner
 
   random_string :token, type: :chars, length: 6, unique: true, upper_letters_only: true
   default_value :permalink, -> { name ? name.parameterize : nil }
   default_value :raw_message_retention_days, -> { 30 }
   default_value :raw_message_retention_size, -> { 2048 }
   default_value :message_retention_days, -> { 60 }
-  default_value :spam_threshold, -> { Postal::Config.postal.default_spam_threshold }
-  default_value :spam_failure_threshold, -> { Postal::Config.postal.default_spam_failure_threshold }
+  default_value :spam_threshold, -> { Postal.config.general.default_spam_threshold }
+  default_value :spam_failure_threshold, -> { Postal.config.general.default_spam_failure_threshold }
 
   validates :name, presence: true, uniqueness: { scope: :organization_id, case_sensitive: false }
   validates :mode, inclusion: { in: MODES }
@@ -139,14 +143,40 @@ class Server < ApplicationRecord
     @held_messages ||= message_db.messages(where: { held: true }, count: true)
   end
 
+  # Sender25 - Function to count emails marked as spam
+  def spam_messages
+    @spam_messages ||= message_db.messages(where: { spam: true }, count: true)
+  end
+
+  # Sender25 - Function to retrieve statistics based on emails saved in the database
+  def statistic_messages(args = {})
+    options = {where: {}, count: true}
+    options[:where][:scope] = args[:scope] if args[:scope]
+    options[:where][:timestamp] = {} if args[:time_start] || args[:time_end]
+    if args[:time_start]
+      options[:where][:timestamp][:greater_than] = args[:time_start].to_f
+    end
+    if args[:time_end]
+      options[:where][:timestamp][:less_than] = args[:time_end].to_f
+    end
+    options[:where][:bounce] = args[:bounce] if args[:bounce]
+    options[:where][:spam] = args[:spam] if args[:spam]
+    options[:where][:held] = args[:held] if args[:held]
+
+    message_db.messages(options)
+  end
+
   def throughput_stats
     @throughput_stats ||= begin
       incoming = message_db.live_stats.total(60, types: [:incoming])
       outgoing = message_db.live_stats.total(60, types: [:outgoing])
+      # Sender25 - Added return of spam statistics
+      spam = message_db.live_stats.total(60, types: [:spam])
       outgoing_usage = send_limit ? (outgoing / send_limit.to_f) * 100 : 0
       {
         incoming: incoming,
         outgoing: outgoing,
+        spam: spam,
         outgoing_usage: outgoing_usage
       }
     end
@@ -157,9 +187,11 @@ class Server < ApplicationRecord
       time = Time.now.utc
       total_outgoing = 0.0
       total_bounces = 0.0
-      message_db.statistics.get(:daily, [:outgoing, :bounces], time, 30).each do |_, stat|
+      # Sender25 - Added return of spam statistics
+      message_db.statistics.get(:daily, [:outgoing, :bounces, :spam], time, 30).each do |date, stat|
         total_outgoing += stat[:outgoing]
         total_bounces += stat[:bounces]
+        total_bounces += stat[:spam]
       end
       total_outgoing.zero? ? 0 : (total_bounces / total_outgoing) * 100
     end
@@ -192,33 +224,37 @@ class Server < ApplicationRecord
   end
 
   def send_limit_approaching?
-    return false unless send_limit
-
-    (send_volume >= send_limit * 0.90)
+    send_limit && (send_volume >= send_limit * 0.90)
   end
 
   def send_limit_exceeded?
-    return false unless send_limit
-
-    send_volume >= send_limit
+    send_limit && send_volume >= send_limit
   end
 
   def send_limit_warning(type)
-    if organization.notification_addresses.present?
-      AppMailer.send("server_send_limit_#{type}", self).deliver
-    end
-
+    AppMailer.send("server_send_limit_#{type}", self).deliver
     update_column("send_limit_#{type}_notified_at", Time.now)
     WebhookRequest.trigger(self, "SendLimit#{type.to_s.capitalize}", server: webhook_hash, volume: send_volume, limit: send_limit)
   end
 
   def queue_size
-    @queue_size ||= queued_messages.ready.count
+    @queue_size ||= queued_messages.retriable.count
+  end
+
+  def stats
+    {
+      queue: queue_size,
+      held: held_messages,
+      bounce_rate: bounce_rate,
+      message_rate: message_rate,
+      throughput: throughput_stats,
+      size: message_db.total_size
+    }
   end
 
   # Return the domain which can be used to authenticate emails sent from the given e-mail address.
   #
-  # @param address [String] an e-mail address
+  #  @param address [String] an e-mail address
   # @return [Domain, nil] the domain to use for authentication
   def authenticated_domain_for_address(address)
     return nil if address.blank?
@@ -266,14 +302,31 @@ class Server < ApplicationRecord
     nil
   end
 
+  # Sender25 - Function to authenticate forwarded emails
+  def find_authenticated_domain_from_mail_from(mail_from)
+    values = [mail_from.sub(":", ": ").to_s]
+    authenticated_domains = values.map { |v| authenticated_domain_for_address(v) }.compact
+    if contains_srs(mail_from) && authenticated_domains.size == values.size
+      return authenticated_domains.first
+    end
+
+    nil
+  end
+
+  # Sender25 - Function to detect forwarding
+  def contains_srs(mail_from)
+    unless mail_from.nil?
+      return true if mail_from.include?("SRS0=") || mail_from.include?("SRS1=")
+    end
+
+    false
+  end
+
   def suspend(reason)
     self.suspended_at = Time.now
     self.suspension_reason = reason
     save!
-    if organization.notification_addresses.present?
-      AppMailer.server_suspended(self).deliver
-    end
-    true
+    AppMailer.server_suspended(self).deliver
   end
 
   def unsuspend
@@ -282,59 +335,68 @@ class Server < ApplicationRecord
     save!
   end
 
-  def ip_pool_for_message(message)
-    return unless message.scope == "outgoing"
-
-    [self, organization].each do |scope|
-      rules = scope.ip_pool_rules.order(created_at: :desc)
-      rules.each do |rule|
-        if rule.apply_to_message?(message)
-          return rule.ip_pool
-        end
-      end
-    end
-
-    ip_pool
-  end
-
-  private
-
   def validate_ip_pool_belongs_to_organization
     return unless ip_pool && ip_pool_id_changed? && !organization.ip_pools.include?(ip_pool)
 
     errors.add :ip_pool_id, "must belong to the organization"
   end
 
-  class << self
+  def ip_pool_for_message(message)
+    return unless message.scope == "outgoing"
 
-    def triggered_send_limit(type)
-      servers = where("send_limit_#{type}_at IS NOT NULL AND send_limit_#{type}_at > ?", 3.minutes.ago)
-      servers.where("send_limit_#{type}_notified_at IS NULL OR send_limit_#{type}_notified_at < ?", 1.hour.ago)
-    end
-
-    def send_send_limit_notifications
-      [:approaching, :exceeded].each_with_object({}) do |type, hash|
-        hash[type] = 0
-        servers = triggered_send_limit(type)
-        next if servers.empty?
-
-        servers.each do |server|
-          hash[type] += 1
-          server.send_limit_warning(type)
+    [self, organization].each do |scope|
+      # Sender25 - Rules to search multiple pools
+      rules = scope.rules.order(created_at: :desc)
+      rules.each do |rule|
+        if rule.apply_to_message?(message)
+          pool_rand = []
+          rule.rule_ip_pools.each do |pool|
+            pool_rand << pool unless pool.ip_pool.nil?
+          end
+          return pool_rand.sample.ip_pool unless pool_rand.blank?
         end
       end
     end
+    ip_pool
+  end
 
-    def [](id, extra = nil)
-      if id.is_a?(String) && id =~ /\A(\w+)\/(\w+)\z/
-        joins(:organization).where(
-          organizations: { permalink: ::Regexp.last_match(1) }, permalink: ::Regexp.last_match(2)
-        ).first
-      else
-        find_by(id: id.to_i)
+  def self.triggered_send_limit(type)
+    servers = where("send_limit_#{type}_at IS NOT NULL AND send_limit_#{type}_at > ?", 3.minutes.ago)
+    servers.where("send_limit_#{type}_notified_at IS NULL OR send_limit_#{type}_notified_at < ?", 1.hour.ago)
+  end
+
+  def self.send_send_limit_notifications
+    [:approaching, :exceeded].each_with_object({}) do |type, hash|
+      hash[type] = 0
+      servers = triggered_send_limit(type)
+      next if servers.empty?
+
+      servers.each do |server|
+        hash[type] += 1
+        server.send_limit_warning(type)
       end
     end
+  end
 
+  def self.[](id, extra = nil)
+    server = nil
+    if id.is_a?(String)
+      if id =~ /\A(\w+)\/(\w+)\z/
+        server = includes(:organization).where(organizations: { permalink: ::Regexp.last_match(1) }, permalink: ::Regexp.last_match(2)).first
+      end
+    else
+      server = where(id: id).first
+    end
+
+    if extra
+      if extra.is_a?(String)
+        server.domains.where(name: extra.to_s).first
+      else
+        server.message(extra.to_i)
+      end
+    else
+      server
+    end
   end
 
 end

@@ -7,11 +7,7 @@ module HasMessage
   end
 
   def message
-    return @message if instance_variable_defined?("@message")
-
-    @message = server.message_db.message(message_id)
-  rescue Postal::MessageDB::Message::NotFound
-    @message = nil
+    @message ||= server.message_db.message(message_id)
   end
 
   def message=(message)

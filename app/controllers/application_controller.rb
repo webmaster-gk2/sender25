@@ -43,7 +43,8 @@ class ApplicationController < ActionController::Base
   end
 
   def page_title
-    @page_title ||= ["Postal"]
+    # Sender25 - Changed the title to Sender25
+    @page_title ||= ["Sender25"]
   end
   helper_method :page_title
 
@@ -109,8 +110,7 @@ class ApplicationController < ActionController::Base
       auth_session.invalidate!
       reset_session
     end
-
-    create_auth_session(user)
+    Authie::Session.start(self, user: user)
     @current_user = user
   end
 

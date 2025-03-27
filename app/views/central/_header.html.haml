@@ -1,0 +1,42 @@
+.serverHeader
+  .serverHeader__info
+    %p.serverHeader__title= "@server.name"
+
+    %ul.serverHeader__list
+
+  .serverHeader__stats
+    %ul.serverHeader__statsList
+      %li.serverHeader__stat-held
+        .js-held-count= "#{pluralize @server.held_messages, 'message'} held"
+      %li.serverHeader__stat-queue
+        .js-queue-size= pluralize(@server.queue_size, 'queued message')
+      %li.serverHeader__stat-bounces
+        .js-bounce-rate= "#{number_to_percentage @server.bounce_rate, :precision => 1} bounce rate"
+      %li.serverHeader__stat-size
+        .js-disk-size= "#{number_to_human_size @server.message_db.total_size} used"
+
+  .serverHeader__usage
+    %p.serverHeader__usageTitle Message throughput &mdash; last 60 minutes
+
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing messages
+      .serverHeader__usageLineBar
+        .bar
+          .bar__inner.js-outgoing-bar{:style => style_width(@server.throughput_stats[:outgoing_usage], :color => true)}
+      .serverHeader__usageLineValue.js-outgoing-count{:title => "Limit: #{@server.send_limit || '∞'} every 60 minutes"}
+        = number_with_delimiter @server.throughput_stats[:outgoing]
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = number_with_delimiter @server.throughput_stats[:incoming]
+
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Message Rate
+      .serverHeader__usageLineValueLarge
+        %b.js-message-rate= number_with_precision @server.message_rate, :precision => 2
+        messages/minute
+
+.navBar
+  %ul
+    %li.navBar__item= link_to "Overview", root_path, :class => ["navBar__link", active_nav == :overview ? "is-active" : ""]
+    %li.navBar__item= link_to "Messages", [:outgoing, :central, @organization, @server, :messages], :class => ["navBar__link", active_nav == :messages ? "is-active" : ""]

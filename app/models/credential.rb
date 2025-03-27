@@ -39,7 +39,7 @@ class Credential < ApplicationRecord
     return if type == "SMTP-IP"
     return if persisted?
 
-    self.key = SecureRandom.alphanumeric(24)
+    self.key = SecureRandomString.new(24)
   end
 
   def to_param

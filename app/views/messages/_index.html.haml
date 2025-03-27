@@ -1,6 +1,7 @@
 .pageContent.js-ajax-region
   - if @searchable
-    = render 'search'
+    -# Sender25 - Added type for message listing correction
+    = render 'search', :active_type => 'incoming'
 
   - if @messages[:records].empty?
     .noData.noData--clean

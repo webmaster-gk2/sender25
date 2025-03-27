@@ -15,4 +15,5 @@
         = link_to "View spam messages", incoming_organization_server_messages_path(organization, @server, :query => "spam: yes"), :class => "button button--neutral"
 
 - else
-  = render 'index'
+  -# Sender25 - Added active_type to correct the message listing
+  = render 'index', :active_type => 'incoming'

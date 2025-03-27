@@ -14,6 +14,11 @@
           %dd
             = link_to spam_checks_organization_server_message_path(organization, @server, @message.id) do
               %span.label.label--large{:class => "label--spamStatus-#{@message.spam_status.underscore}"}= @message.spam_status.underscore.humanize
+            -# Sender25 - Added button to change spam status
+            - if @message.spam_status == "Spam"
+              = link_to "It is not spam", toggle_spam_organization_server_message_path(organization, @server, @message.id), :class => "button button--small button--positive", :remote => true, :method => :post
+            - elsif @message.spam_status == "NotSpam"
+              = link_to "Report spam", toggle_spam_organization_server_message_path(organization, @server, @message.id), :class => "button button--small button--neutral", :remote => true, :method => :post
         %dl.messagePropertiesPage__property
           %dt Tag
           %dd= @message.tag ? link_to(@message.tag, send("#{@message.scope}_organization_server_messages_path", organization, @server, :query => "tag: #{@message.tag}"), :class => "u-link") : "Not tagged"

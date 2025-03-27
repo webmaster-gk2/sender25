@@ -44,7 +44,8 @@
                 %p.ipList__ipv6 IPv6 Address
                 %p.ipList__hostname Hostname
 
-              - for address in ip_pool.ip_addresses
+              -# Sender25 - Added hostname order
+              - for address in ip_pool.ip_addresses.order(:hostname)
                 %li.ipList__address
                   %p.ipList__ipv4= address.ipv4
                   %p.ipList__ipv6= address.ipv6

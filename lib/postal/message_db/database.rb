@@ -12,10 +12,9 @@ module Postal
 
       end
 
-      def initialize(organization_id, server_id, database_name: nil)
+      def initialize(organization_id, server_id)
         @organization_id = organization_id
         @server_id = server_id
-        @database_name = database_name
       end
 
       attr_reader :organization_id
@@ -59,8 +58,8 @@ module Postal
       end
 
       #
-      # Create a new message with the given attributes. This won't be saved to the database
-      # until it has been 'save'd.
+      #  Create a new message with the given attributes. This won't be saved to the database
+      #  until it has been 'save'd.
       #
       def new_message(attributes = {})
         Message.new(self, attributes)
@@ -74,35 +73,35 @@ module Postal
       end
 
       #
-      # Return the live stats instance
+      #  Return the live stats instance
       #
       def live_stats
         @live_stats ||= LiveStats.new(self)
       end
 
       #
-      # Return the statistics instance
+      #  Return the statistics instance
       #
       def statistics
         @statistics ||= Statistics.new(self)
       end
 
       #
-      # Return the provisioner instance
+      #  Return the provisioner instance
       #
       def provisioner
         @provisioner ||= Provisioner.new(self)
       end
 
       #
-      # Return the provisioner instance
+      #  Return the provisioner instance
       #
       def suppression_list
         @suppression_list ||= SuppressionList.new(self)
       end
 
       #
-      # Return the provisioner instance
+      #  Return the provisioner instance
       #
       def webhooks
         @webhooks ||= Webhooks.new(self)
@@ -155,7 +154,12 @@ module Postal
         else
           sql_query << " *"
         end
-        sql_query << " FROM `#{database_name}`.`#{table}`"
+        # Sender25 - Added database filter
+        if options[:dbname].present?
+          sql_query << " FROM `#{options[:dbname]}`.`#{table}`"
+        else
+          sql_query << " FROM `#{database_name}`.`#{table}`"
+        end
         if options[:where].present?
           sql_query << (" " + build_where_string(options[:where], " AND "))
         end
@@ -183,13 +187,14 @@ module Postal
       end
 
       #
-      # A paginated version of select
+      #  A paginated version of select
       #
       def select_with_pagination(table, page, options = {})
         page = page.to_i
         page = 1 if page <= 0
 
-        per_page = options.delete(:per_page) || 30
+        # Sender25 - Changed default pagination to 500
+        per_page = options.delete(:per_page) || 500
         offset = (page - 1) * per_page
 
         result = {}
@@ -211,7 +216,12 @@ module Postal
       # Will return the total number of affected rows.
       #
       def update(table, attributes, options = {})
-        sql_query = "UPDATE `#{database_name}`.`#{table}` SET"
+        # Sender25 - Added database filter
+        if options[:dbname].present?
+          sql_query = "UPDATE `#{options[:dbname]}`.`#{table}` SET"
+        else
+          sql_query = "UPDATE `#{database_name}`.`#{table}` SET"
+        end
         sql_query << " #{hash_to_sql(attributes)}"
         if options[:where]
           sql_query << (" " + build_where_string(options[:where]))
@@ -226,8 +236,13 @@ module Postal
       # Insert a record into a given table. A hash of attributes is also provided.
       # Will return the ID of the new item.
       #
-      def insert(table, attributes)
-        sql_query = "INSERT INTO `#{database_name}`.`#{table}`"
+      # Sender25 - Added database filter
+      def insert(table, attributes, options = {})
+        if options[:dbname].present?
+          sql_query = "INSERT INTO `#{options[:dbname]}`.`#{table}`"
+        else
+          sql_query = "INSERT INTO `#{database_name}`.`#{table}`"
+        end
         sql_query << (" (" + attributes.keys.map { |k| "`#{k}`" }.join(", ") + ")")
         sql_query << (" VALUES (" + attributes.values.map { |v| escape(v) }.join(", ") + ")")
         with_mysql do |mysql|
@@ -253,14 +268,19 @@ module Postal
 
       #
       # Deletes a in the database. Accepts a table name, and some options which
-      # are shown below:
+      #  are shown below:
       #
       #   :where     => The condition to apply to the query
       #
       # Will return the total number of affected rows.
       #
       def delete(table, options = {})
-        sql_query = "DELETE FROM `#{database_name}`.`#{table}`"
+        # Sender25 - Added database filter
+        if options[:dbname].present?
+          sql_query = "DELETE FROM `#{options[:dbname]}`.`#{table}`"
+        else
+          sql_query = "DELETE FROM `#{database_name}`.`#{table}`"
+        end
         sql_query << (" " + build_where_string(options[:where], " AND "))
         with_mysql do |mysql|
           query_on_connection(mysql, sql_query)
@@ -269,10 +289,10 @@ module Postal
       end
 
       #
-      # Return the correct database name
+      #  Return the correct database name
       #
       def database_name
-        @database_name ||= "#{Postal::Config.message_db.database_name_prefix}-server-#{@server_id}"
+        @database_name ||= "#{Postal.config.message_db.prefix}-server-#{@server_id}"
       end
 
       #
@@ -326,12 +346,12 @@ module Postal
         result = connection.query(query, cast_booleans: true)
         time = Time.now.to_f - start_time
         logger.debug "  \e[4;34mMessageDB Query (#{time.round(2)}s) \e[0m  \e[33m#{query}\e[0m"
-        if time > 0.05 && query =~ /\A(SELECT|UPDATE|DELETE) /
-          id = SecureRandom.alphanumeric(8)
+        if time > 0.5 && query =~ /\A(SELECT|UPDATE|DELETE) /
+          id = Nifty::Utils::RandomString.generate(length: 6).upcase
           explain_result = ResultForExplainPrinter.new(connection.query("EXPLAIN #{query}"))
-          logger.info "  [#{id}] EXPLAIN #{query}"
+          slow_query_logger.info "[#{id}] EXPLAIN #{query}"
           ActiveRecord::ConnectionAdapters::MySQL::ExplainPrettyPrinter.new.pp(explain_result, time).split("\n").each do |line|
-            logger.info "  [#{id}] " + line
+            slow_query_logger.info "[#{id}] " + line
           end
         end
         result
@@ -341,15 +361,21 @@ module Postal
         defined?(Rails) ? Rails.logger : Logger.new($stdout)
       end
 
+      def slow_query_logger
+        Postal.logger_for(:slow_message_db_queries)
+      end
+
       def with_mysql(&block)
         self.class.connection_pool.use(&block)
       end
 
       def build_where_string(attributes, joiner = ", ")
-        "WHERE #{hash_to_sql(attributes, joiner)}"
+        # Sender25 - Allow use of like
+        "WHERE #{hash_to_sql(attributes, joiner, true)}"
       end
 
-      def hash_to_sql(hash, joiner = ", ")
+      # Sender25 - Added permit_like parameter
+      def hash_to_sql(hash, joiner = ", ", permit_like = false)
         hash.map do |key, value|
           if value.is_a?(Array) && value.all? { |v| v.is_a?(Integer) }
             "`#{key}` IN (#{value.join(', ')})"
@@ -368,13 +394,47 @@ module Postal
                 sql << "`#{key}` <= #{escape(inner_value)}"
               when :greater_than_or_equal_to
                 sql << "`#{key}` >= #{escape(inner_value)}"
+                # Sender25 - Added new filters
+              when :not_content
+                sql << hash_not_content_to_sql(key, inner_value, joiner)
+              when :content
+                sql << hash_content_to_sql(key, inner_value, joiner)
               end
             end
             sql.empty? ? "1=1" : sql.join(joiner)
+            # Sender25 - Added new filters
+          elsif permit_like && value.is_a?(String) && value.include?('%')
+            "`#{key}` LIKE #{escape(value)}"
           else
             "`#{key}` = #{escape(value)}"
           end
         end.join(joiner)
+      end
+
+      # Sender25 - Added joiner parameter
+      def hash_not_content_to_sql(key, value, joiner)
+        if value.is_a?(Array)
+          value.map { |v| v.include?('%') ? "(`#{key}` NOT LIKE #{escape(v)} OR `#{key}` IS NULL)" : "(`#{key}` != #{escape(v)} OR `#{key}` IS NULL)" }.join(joiner)
+        elsif value.is_a?(Hash)
+          "1=1"
+        elsif value.is_a?(String) && value.include?('%')
+          "(`#{key}` NOT LIKE #{escape(value)} OR `#{key}` IS NULL)"
+        else
+          "(`#{key}` != #{escape(value)} OR `#{key}` IS NULL)"
+        end
+      end
+
+      # Sender25 - Added joiner parameter
+      def hash_content_to_sql(key, value, joiner)
+        if value.is_a?(Array)
+          value.map { |v| v.include?('%') ? "`#{key}` LIKE #{escape(v)}" : "`#{key}` = #{escape(v)}" }.join(joiner)
+        elsif value.is_a?(Hash)
+          "1=1"
+        elsif value.is_a?(String) && value.include?('%')
+          "`#{key}` LIKE #{escape(value)}"
+        else
+          "`#{key}` = #{escape(value)}"
+        end
       end
 
     end

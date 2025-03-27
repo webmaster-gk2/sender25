@@ -16,13 +16,11 @@
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym "DKIM"
   inflect.acronym "HTTP"
-  inflect.acronym "OIDC"
   inflect.acronym "SMTP"
   inflect.acronym "UUID"
 
   inflect.acronym "API"
   inflect.acronym "DNS"
-  inflect.acronym "SSL"
   inflect.acronym "MySQL"
 
   inflect.acronym "DB"

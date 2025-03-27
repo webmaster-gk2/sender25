@@ -45,9 +45,15 @@ module Postal
           @message.database.statistics.increment_all(timestamp, "held")
         end
 
-        return unless status == "Bounced" || status == "HardFail"
+        # Sender25 - Send to statistics if it is not spam
+        return unless status == "Bounced" || (status == "HardFail" && @message.spam == 0)
 
         @message.database.statistics.increment_all(timestamp, "bounces")
+
+        # Sender25 - Send to statistics if it is spam
+        return unless @message.spam == 1 && status == "HardFail"
+
+        @message.database.statistics.increment_all(self.timestamp, 'spam')
       end
 
       def send_webhooks

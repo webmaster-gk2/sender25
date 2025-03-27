@@ -28,7 +28,8 @@ module Postal
           raise Postal::Error, "Live stats can only return data for the last 60 minutes."
         end
 
-        options[:types] ||= [:incoming, :outgoing]
+        # Sender25 - Added spam statistics
+        options[:types] ||= [:incoming, :outgoing, :spam]
         raise Postal::Error, "You must provide at least one type to return" if options[:types].empty?
 
         time = minutes.minutes.ago.beginning_of_minute.utc.to_f

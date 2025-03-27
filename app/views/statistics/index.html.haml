@@ -1,0 +1,46 @@
+-# Sender25 - View of statistics
+- page_title << @server.name
+- page_title << "Statistics"
+= render "servers/sidebar", :active_server => @server
+= render "servers/header", :active_nav => :statistics
+
+.pageContent.pageContent--compact
+  %h1.pageContent__title Statistics of #{@server.name}
+  %h2.pageContent__intro.u-margin
+    Future text
+
+  - for statistics in @statistics.reverse
+    .u-margin
+      %h2.pageContent__subTitle Start in #{statistics[:t_first_day].strftime("%Y-%m-%d")} at #{statistics[:t_last_day].strftime("%Y-%m-%d")}
+      %dl.pageContent__definitions
+        %dt Outgoing messages
+        %dd
+          %p.pageContent__definitionCode= statistics[:outgoing]
+      %dl.pageContent__definitions
+        %dt Outgoing Bounce messages
+        %dd
+          %p.pageContent__definitionCode= statistics[:outgoing_bounce]
+      %dl.pageContent__definitions
+        %dt Outgoing Spam messages
+        %dd
+          %p.pageContent__definitionCode= statistics[:outgoing_spam]
+      %dl.pageContent__definitions
+        %dt Outgoing Held messages
+        %dd
+          %p.pageContent__definitionCode= statistics[:outgoing_held]
+      %dl.pageContent__definitions
+        %dt Incoming messages
+        %dd
+          %p.pageContent__definitionCode= statistics[:incoming]
+      %dl.pageContent__definitions
+        %dt Incoming Bounce messages
+        %dd
+          %p.pageContent__definitionCode= statistics[:incoming_bounce]
+      %dl.pageContent__definitions
+        %dt Incoming Spam messages
+        %dd
+          %p.pageContent__definitionCode= statistics[:incoming_spam]
+      %dl.pageContent__definitions
+        %dt Incoming Held messages
+        %dd
+          %p.pageContent__definitionCode= statistics[:incoming_held]

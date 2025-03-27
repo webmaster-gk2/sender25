@@ -21,8 +21,8 @@
             = link_to "Close", '#', :class => 'button button--dark button--small', :data => {:remember => 'no'}
 
       .siteHeader__inside
-        .siteHeader__logo= link_to "Postal", root_path
-        %p.siteHeader__version The open source e-mail platform
+        -# Sender25 - Change "Postal" to "Sender25"
+        .siteHeader__logo= link_to "Sender25", root_path
         %ul.siteHeader__nav
           - if defined?(organization) && organization
             %li.siteHeader__navItem
@@ -42,6 +42,8 @@
           - if current_user.admin?
             - if Postal.ip_pools?
               %li.siteHeader__navItem= link_to "IP Pools", ip_pools_path, :class => 'sideHeader__navItemLink'
+            -# Sender25 - Added link to global suppression list
+            %li.siteHeader__navItem= link_to "Suppression List", suppressions_path, :class => 'sideHeader__navItemLink'
             %li.siteHeader__navItem= link_to "Users", users_path, :class => 'sideHeader__navItemLink'
           %li.siteHeader__navItem= link_to "Logout", logout_path, :method => :delete, :class => 'sideHeader__navItemLink'
 
@@ -54,9 +56,6 @@
         = yield
         %footer.siteContent__footer
           %ul.footer__links
+            -# Sender25 - Change "Postal" to "Sender25"
             %li.footer__name
-              Powered by
-              #{link_to "Postal", "https://postalserver.io", target: '_blank'}
-              #{postal_version_string}
-            %li= link_to "Documentation", "https://docs.postalserver.io", target: '_blank'
-            %li= link_to "Ask for help", "https://discussions.postalserver.io", target: '_blank'
+              Powered by Sender25 v#{Postal.version}.

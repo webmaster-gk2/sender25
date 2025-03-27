@@ -13,6 +13,14 @@
   .ct-series-b .ct-line { stroke:$turquoise;}
   .ct-series-b .ct-area { fill:$turquoise;fill-opacity:0.2;}
 
+  // Sender25 - Add color for spam, bounces and held labels
+  .ct-series-c .ct-line { stroke:$red;}
+  .ct-series-c .ct-area { fill:$red;fill-opacity:0.2;}
+  .ct-series-d .ct-line { stroke:#f184e8;}
+  .ct-series-d .ct-area { fill:#f184e8;fill-opacity:0.2;}
+  .ct-series-e .ct-line { stroke:$subBlue;}
+  .ct-series-e .ct-area { fill:$subBlue;fill-opacity:0.2;}
+
   .ct-point { stroke-width: 0; }
   .ct-line { stroke-width:1px; }
   .ct-area { fill-opacity: 0.4; }
@@ -54,7 +62,28 @@
     }
   }
 
-
+  // Sender25 - Add color for spam, bounces and held labels
+  li.mailGraph__key--spam {
+    color:$red;
+    &:before {
+      border-color:$red ;
+      background:lighten($red, 30%);
+    }
+  }
+  li.mailGraph__key--bounces {
+    color:#e81fd9;
+    &:before {
+      border-color:#e81fd9 ;
+      background:#f184e8;
+    }
+  }
+  li.mailGraph__key--held {
+    color:$subBlue;
+    &:before {
+      border-color:$subBlue ;
+      background:lighten($subBlue, 30%);
+    }
+  }
 }
 
 .mailGraph__labels {

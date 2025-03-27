@@ -1,0 +1,40 @@
+-# Sender25 - View of custom rules
+.pageContent.pageContent--compact
+  = form_for [organization, @server, @rule], :remote => true do |f|
+    = f.error_messages
+    %fieldset.fieldSet
+      %h2.fieldSet__title.fieldSet__title--noMargin Rule match conditions
+      .fieldSet__field
+        = f.label :to_text, "To Addresses", :class => "fieldSet__label"
+        .fieldSet__input
+          ~ f.text_area :to_text, :autofocus => true, :class => "input input--text input--smallArea"
+          %p.fieldSet__text
+            This is a list of addresses or domains which should be matched. This
+            applies to e-mail address of the recipient of a message.
+
+      .fieldSet__field
+        = f.label :from_text, "From Addresses", :class => "fieldSet__label"
+        .fieldSet__input
+          ~ f.text_area :from_text, :class => "input input--text input--smallArea"
+          %p.fieldSet__text
+            This is a list of addresses or domains which should be matched. This
+            applies to value <code>From</code> in the From header of the message
+            that is being delivered.
+    %fieldset.fieldSet
+      %h2.fieldSet__title Selected IP Pool
+
+
+      .fieldSet__field
+        = f.label :ip_pool_id, "IP Pool", :class => "fieldSet__label"
+        %ul.checkboxList.u-margin{:style => style_width(80)}
+          - for ip_pool in organization.ip_pools.includes(:ip_addresses).order("`default` desc, name asc")
+            %li.checkboxList__item
+              .checkboxList__checkbox= check_box_tag "ip_pools[]", ip_pool.id, @rule.ip_pools.include?(ip_pool), :id => "ip_pool_#{ip_pool.id}"
+              .checkboxList__label
+                = label_tag "ip_pool_#{ip_pool.id}", ip_pool.name, :class => "checkboxList__actualLabel"
+
+    .fieldSetSubmit
+      = f.submit "Save Rule", :class => "button button--positive js-form-submit"
+      .fieldSetSubmit__delete
+        - if f.object.persisted?
+          = link_to "Delete Rule", [organization, @server, @rule], :remote => true, :class => "button button--danger", :method => :delete, :data => {:confirm => "Are you sure you wish to delete this rule?"}

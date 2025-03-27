@@ -36,17 +36,28 @@ mail.html_part = Mail::Part.new do
     <p>Hello there</p>
     <p>This is an example email. It doesn't do all that much.</p>
     <p>Some other characters: őúéáűí</p>
-    <p>There is a <a href='https://postalserver.io/test-plain-text-link?foo=bar&amp;baz=qux'>link here</a> though...</p>
+    <p>There is a <a href='https://postalserver.io/test-plain-text-link?foo=bar&baz=qux'>link here</a> though...</p>
   BODY
 end
 
 c = OpenSSL::SSL::SSLContext.new
 c.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
-smtp = Net::SMTP.new("127.0.0.1", 2525)
-smtp.enable_starttls(c)
-smtp.start("localhost")
-smtp.send_message mail.to_s, mail.from.first, mail.to.first
-smtp.finish
+<<<<<<< Updated upstream
+Net::SMTP.start("127.0.0.1", 2525) do |smtp|
+  smtp.send_message mail.to_s, mail.from.first, mail.to.first
+end
+=======
+1000.times.map do
+  Thread.new do
+    smtp = Net::SMTP.new("77.72.7.155", 25)
+    # smtp.enable_starttls(c)
+    smtp.disable_starttls
+    smtp.start("localhost")
+    smtp.send_message mail.to_s, mail.from.first, mail.to.first
+    smtp.finish
+  end
+end.each(&:join)
+>>>>>>> Stashed changes
 
 puts "Sent"

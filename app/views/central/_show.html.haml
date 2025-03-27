@@ -1,0 +1,28 @@
+- if @messages.empty?
+  .pageContent--compact
+    .noData.noData--clean
+      %h2.noData__title Your new mail server is ready to go.
+- else
+  .pageContent
+    .mailGraph.u-margin{:data => {:data => @graph_data.to_json}}
+      %ul.mailGraph__key
+        %li.mailGraph__key--in Incoming Messages
+        %li.mailGraph__key--out Outgoing Messages
+        %li.mailGraph__key--bounces Bounces Messages
+
+      .mailGraph__graph
+      %ul.mailGraph__labels
+        - if @graph_type == :hourly
+          %li #{@first_date.strftime("%A at %l%P")} &rarr;
+          %li Today at #{Time.now.strftime("%l%P")}
+        - else
+          %li #{@first_date.to_date.to_s(:long)} &rarr;
+          %li Today
+
+    .titleWithLinks.u-margin
+      %h2.titleWithLinks__title Recently processed e-mails
+      %ul.titleWithLinks__links
+        %li= link_to "View message queue", [:queue, organization, @server], :class => 'titleWithLinks__link'
+        %li= link_to "View full e-mail history", [:outgoing, organization, @server, :messages], :class => 'titleWithLinks__link'
+    = render 'messages/list', :messages => @messages
+

@@ -25,7 +25,7 @@ class OutgoingMessagePrototype
     @source_type = source_type
     @custom_headers = {}
     @attachments = []
-    @message_id = "#{SecureRandom.uuid}@#{Postal::Config.dns.return_path_domain}"
+    @message_id = "#{SecureRandom.uuid}@#{Postal.config.dns.return_path}"
     attributes.each do |key, value|
       instance_variable_set("@#{key}", value)
     end
@@ -99,7 +99,7 @@ class OutgoingMessagePrototype
       {
         name: attachment[:name],
         content_type: attachment[:content_type] || "application/octet-stream",
-        data: attachment[:base64] && attachment[:data] ? Base64.decode64(attachment[:data]) : attachment[:data]
+        data: attachment[:base64] ? Base64.decode64(attachment[:data]) : attachment[:data]
       }
     end
   end
@@ -177,7 +177,7 @@ class OutgoingMessagePrototype
           content: attachment[:data]
         }
       end
-      mail.header["Received"] = ReceivedHeader.generate(@server, @source_type, @ip, :http)
+      mail.header["Received"] = Postal::ReceivedHeader.generate(@server, @source_type, @ip, :http)
       mail.message_id = "<#{@message_id}>"
       mail.to_s
     end

@@ -46,6 +46,14 @@
             This is the e-mail address that is included in any bounce messages that are sent when incoming
             messages cannot be delivered. By default, the address is <code>postmaster@[yourdomain.com]</code>.
 
+    -# Sender25 - Added custom SPF
+    .fieldSet__field
+      = f.label :custom_spf, "Custom SPF", :class => 'fieldSet__label'
+      .fieldSet__input
+        = f.text_field :custom_spf, :class => 'input input--text', :placeholder => "Custom SPF to domain"
+        %p.fieldSet__text
+          Custom SPF to domain. By default, this field is empty.
+
   .fieldSetSubmit.buttonSet
     = f.submit f.object.new_record? ? "Build server" : "Save server", :class => 'button button--positive js-form-submit'
     .fieldSetSubmit__delete

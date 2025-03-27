@@ -35,7 +35,8 @@ class IPAddressesController < ApplicationController
   private
 
   def safe_params
-    params.require(:ip_address).permit(:ipv4, :ipv6, :hostname, :priority)
+    # Sender25 - Added :active and :blacklist to the permitted params
+    params.require(:ip_address).permit(:ipv4, :ipv6, :hostname, :active, :blacklist, :priority)
   end
 
 end

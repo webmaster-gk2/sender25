@@ -1,0 +1,21 @@
+- organizations = Organization.present.order(:name).to_a
+
+= content_for :sidebar do
+  - if organizations.empty?
+    .noData.noData--clean
+      %p.noData__title There are no organizations.
+      %p.noData__text
+        You need an organization otherwise you can't do much here. Hit
+        the button below to create the first organization.
+      %p.noData__button= link_to "Create the first organization", :new_organization, :class => 'button button--positive'
+  - else
+    %p.pageContent__intro.u-margin
+      Organizations are entities which are able to deploy mail servers.
+      Choose an existing organization from the list opposite or use the button below
+      to create a new one.
+    %ul.sidebarServerList
+      - for organization in organizations
+        %li.sidebarServerList__item
+          = link_to organization_root_path(organization), :class => 'largeList__link' do
+            %p.sidebarServerList__title= organization.name
+      %p.sidebar__new= link_to "Start another organization", :new_organization, :class => 'button button--positive'

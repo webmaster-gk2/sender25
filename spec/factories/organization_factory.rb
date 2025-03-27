@@ -28,10 +28,5 @@ FactoryBot.define do
     name { "Acme Inc" }
     sequence(:permalink) { |n| "org#{n}" }
     association :owner, factory: :user
-
-    trait :suspended do
-      suspended_at { 1.day.ago }
-      suspension_reason { "test" }
-    end
   end
 end

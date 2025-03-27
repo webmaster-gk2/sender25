@@ -57,19 +57,28 @@ class Domain < ApplicationRecord
 
   random_string :dkim_identifier_string, type: :chars, length: 6, unique: true, upper_letters_only: true
 
-  before_create :generate_dkim_key
+  # Sender25 - Removed generate_dkim_key from before_create
+  # before_create :generate_dkim_key
 
   scope :verified, -> { where.not(verified_at: nil) }
 
-  before_save :update_verification_token_on_method_change
+  when_attribute :verification_method, changes_to: :anything do
+    before_save do
+      if verification_method == "DNS"
+        self.verification_token = Nifty::Utils::RandomString.generate(length: 32)
+      elsif verification_method == "Email"
+        self.verification_token = rand(999_999).to_s.ljust(6, "0")
+      else
+        self.verification_token = nil
+      end
+    end
+  end
 
   def verified?
     verified_at.present?
   end
 
-  def mark_as_verified
-    return false if verified?
-
+  def verify
     self.verified_at = Time.now
     save!
   end
@@ -82,13 +91,18 @@ class Domain < ApplicationRecord
   end
 
   def generate_dkim_key
-    self.dkim_private_key = OpenSSL::PKey::RSA.new(1024).to_s
+    # Sender25 - Changed to not generate dkim_private_key if already exists
+    !self.dkim_private_key.present?
+      self.dkim_private_key = OpenSSL::PKey::RSA.new(1024).to_s
   end
 
   def dkim_key
-    return nil unless dkim_private_key
-
-    @dkim_key ||= OpenSSL::PKey::RSA.new(dkim_private_key)
+    # Sender25 - Changed to check if dkim_private_key is nil
+    if dkim_private_key.nil?
+      @dkim_key ||= nil
+    else
+      @dkim_key ||= OpenSSL::PKey::RSA.new(dkim_private_key)
+    end
   end
 
   def to_param
@@ -103,73 +117,101 @@ class Domain < ApplicationRecord
     end.flatten
   end
 
+  # Sender25 - Added custom_spf
+  def spf_value
+    domain_spf = Postal.config.dns.spf_include
+    if self.owner.is_a?(Server)
+      if (server = Server.where(id: self.owner_id).first)
+        unless server.custom_spf.blank?
+          domain_spf = server.custom_spf
+        end
+      end
+    end
+    domain_spf
+  end
+
+  # Sender25 - Changed to use custom_spf
   def spf_record
-    "v=spf1 a mx include:#{Postal::Config.dns.spf_include} ~all"
+    "v=spf1 +a +mx +include:#{self.spf_value} ~all"
+  end
+
+  # Sender25 - Changed to use rsa due to cPanel
+  def dkim_record_log(dns_record, db_record, partial_dns_record, partial_db_record)
+    logger = Postal.logger_for(:http_sender)
+
+    logger.info "#{dns_record} === #{db_record} or #{partial_dns_record} === #{partial_db_record}"
+
+    public_key = dkim_key.public_key.to_s.gsub(/-+[A-Z ]+-+\n/, "").gsub(/\n/, "")
+    logger.info "#{public_key};"
   end
 
   def dkim_record
-    return if dkim_key.nil?
-
-    public_key = dkim_key.public_key.to_s.gsub(/-+[A-Z ]+-+\n/, "").gsub(/\n/, "")
-    "v=DKIM1; t=s; h=sha256; p=#{public_key};"
+    # Sender25 - Check if dkim_key exists
+    if dkim_key.nil?
+      public_key = ''
+    else
+      public_key = dkim_key.public_key.to_s.gsub(/-+[A-Z ]+-+\n/, "").gsub(/\n/, "")
+    end
+    # Sender25 - Using rsa due to cPanel
+    # "v=DKIM1; t=s; h=sha256; p=#{public_key};"
+    "v=DKIM1; k=rsa; p=#{public_key};"
   end
 
   def dkim_identifier
-    return nil unless dkim_identifier_string
-
-    Postal::Config.dns.dkim_identifier + "-#{dkim_identifier_string}"
+    # Sender25 - Changed to use dkim_identifier_string
+    # Postal.config.dns.dkim_identifier + "-#{dkim_identifier_string}"
+    Postal.config.dns.dkim_identifier
   end
 
   def dkim_record_name
-    identifier = dkim_identifier
-    return if identifier.nil?
-
-    "#{identifier}._domainkey"
+    "#{dkim_identifier}._domainkey"
   end
 
   def return_path_domain
-    "#{Postal::Config.dns.custom_return_path_prefix}.#{name}"
+    "#{Postal.config.dns.custom_return_path_prefix}.#{name}"
   end
 
-  # Returns a DNSResolver instance that can be used to perform DNS lookups needed for
-  # the verification and DNS checking for this domain.
-  #
-  # @return [DNSResolver]
-  def resolver
-    return DNSResolver.local if Postal::Config.postal.use_local_ns_for_domain_verification?
+  def nameservers
+    @nameservers ||= get_nameservers
+  end
 
-    @resolver ||= DNSResolver.for_domain(name)
+  def resolver
+    @resolver ||= Postal.config.general.use_local_ns_for_domains? ? Resolv::DNS.new : Resolv::DNS.new(nameserver: nameservers)
   end
 
   def dns_verification_string
-    "#{Postal::Config.dns.domain_verify_prefix} #{verification_token}"
+    "#{Postal.config.dns.domain_verify_prefix} #{verification_token}"
   end
 
   def verify_with_dns
     return false unless verification_method == "DNS"
 
-    result = resolver.txt(name)
-
-    if result.include?(dns_verification_string)
+    result = resolver.getresources(name, Resolv::DNS::Resource::IN::TXT)
+    if result.map { |d| d.data.to_s.strip }.include?(dns_verification_string)
       self.verified_at = Time.now
-      return save
+      save
+    else
+      false
     end
-
-    false
   end
 
   private
 
-  def update_verification_token_on_method_change
-    return unless verification_method_changed?
-
-    if verification_method == "DNS"
-      self.verification_token = SecureRandom.alphanumeric(32)
-    elsif verification_method == "Email"
-      self.verification_token = rand(999_999).to_s.ljust(6, "0")
-    else
-      self.verification_token = nil
+  def get_nameservers
+    local_resolver = Resolv::DNS.new
+    ns_records = []
+    parts = name.split(".")
+    (parts.size - 1).times do |n|
+      d = parts[n, parts.size - n + 1].join(".")
+      ns_records = local_resolver.getresources(d, Resolv::DNS::Resource::IN::NS).map { |s| s.name.to_s }
+      break if ns_records.present?
     end
+    return [] if ns_records.blank?
+
+    ns_records = ns_records.map { |r| local_resolver.getresources(r, Resolv::DNS::Resource::IN::A).map { |s| s.address.to_s } }.flatten
+    return [] if ns_records.blank?
+
+    ns_records
   end
 
 end

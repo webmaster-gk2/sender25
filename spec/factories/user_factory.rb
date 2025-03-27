@@ -5,21 +5,19 @@
 # Table name: users
 #
 #  id                               :integer          not null, primary key
-#  admin                            :boolean          default(FALSE)
-#  email_address                    :string(255)
-#  email_verification_token         :string(255)
-#  email_verified_at                :datetime
+#  uuid                             :string(255)
 #  first_name                       :string(255)
 #  last_name                        :string(255)
-#  oidc_issuer                      :string(255)
-#  oidc_uid                         :string(255)
+#  email_address                    :string(255)
 #  password_digest                  :string(255)
-#  password_reset_token             :string(255)
-#  password_reset_token_valid_until :datetime
 #  time_zone                        :string(255)
-#  uuid                             :string(255)
+#  email_verification_token         :string(255)
+#  email_verified_at                :datetime
 #  created_at                       :datetime
 #  updated_at                       :datetime
+#  password_reset_token             :string(255)
+#  password_reset_token_valid_until :datetime
+#  admin                            :boolean          default(FALSE)
 #
 # Indexes
 #

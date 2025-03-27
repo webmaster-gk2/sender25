@@ -28,34 +28,68 @@ class UserController < ApplicationController
     end
   end
 
+  def join
+    if @invite = UserInvite.where(uuid: params[:token]).where("expires_at > ?", Time.now).first
+      if logged_in?
+        if request.post?
+          @invite.accept(current_user)
+          redirect_to_with_json root_path(nrd: 1), notice: "Invitation has been accepted successfully. You now have access to this organization."
+        elsif request.delete?
+          @invite.reject
+          redirect_to_with_json root_path(nrd: 1), notice: "Invitation has been rejected successfully."
+        else
+          @organizations = @invite.organizations.order(:name).to_a
+        end
+      else
+        redirect_to new_signup_path(params[:token])
+      end
+    else
+      redirect_to_with_json root_path(nrd: 1), alert: "The invite URL you have has expired. Please ask the person who invited you to re-send your invitation."
+    end
+  end
+
   def update
     @user = User.find(current_user.id)
-    safe_params = [:first_name, :last_name, :time_zone, :email_address]
+    @user.attributes = params.require(:user).permit(:first_name, :last_name, :time_zone, :email_address, :password, :password_confirmation)
 
-    if @user.password? && Postal::Config.oidc.local_authentication_enabled?
-      safe_params += [:password, :password_confirmation]
-      if @user.authenticate_with_previous_password_first(params[:password])
-        @password_correct = true
-      else
-        respond_to do |wants|
-          wants.html do
-            flash.now[:alert] = "The current password you have entered is incorrect. Please check and try again."
-            render "edit"
-          end
-          wants.json do
-            render json: { alert: "The current password you've entered is incorrect. Please check and try again" }
-          end
+    if @user.authenticate_with_previous_password_first(params[:password])
+      @password_correct = true
+    else
+      respond_to do |wants|
+        wants.html do
+          flash.now[:alert] = "The current password you have entered is incorrect. Please check and try again."
+          render "edit"
         end
-        return
+        wants.json do
+          render json: { alert: "The current password you've entered is incorrect. Please check and try again" }
+        end
       end
+      return
     end
 
-    @user.attributes = params.require(:user).permit(safe_params)
+    email_changed = @user.email_address_changed?
 
     if @user.save
-      redirect_to_with_json settings_path, notice: "Your settings have been updated successfully."
+      if email_changed
+        redirect_to_with_json verify_path(return_to: settings_path),
+                              notice: "Your settings have been updated successfully. As you've changed, your e-mail " \
+                                      "address you'll need to verify it before you can continue."
+      else
+        redirect_to_with_json settings_path, notice: "Your settings have been updated successfully."
+      end
     else
       render_form_errors "edit", @user
+    end
+  end
+
+  def verify
+    return unless request.post?
+
+    if params[:code].to_s.strip == current_user.email_verification_token.to_s || (Rails.env.development? && params[:code].to_s.strip == "123456")
+      current_user.verify!
+      redirect_to_with_json [:return_to, root_path], notice: "Thanks - your e-mail address has been verified successfully."
+    else
+      flash_now :alert, "The code you've entered isn't correct. Please check and try again."
     end
   end
 

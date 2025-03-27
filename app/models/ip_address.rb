@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Sender25 - Added field active and blacklist
 # == Schema Information
 #
 # Table name: ip_addresses
@@ -11,6 +12,8 @@
 #  created_at :datetime
 #  updated_at :datetime
 #  hostname   :string(255)
+#  active     :boolean(255)          default(TRUE)
+#  blacklist  :boolean(255)          default(FALSE)
 #  priority   :integer
 #
 
@@ -38,7 +41,8 @@ class IPAddress < ApplicationRecord
   class << self
 
     def select_by_priority
-      order(Arel.sql("RAND() * priority DESC")).first
+      # Sender25 - Added field active and blacklist
+      where(blacklist: false, active: true).order(Arel.sql("RAND() * priority DESC")).first
     end
 
   end

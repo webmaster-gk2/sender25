@@ -12,14 +12,12 @@ require "sprockets/railtie"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-gem_groups = Rails.groups
-gem_groups << :oidc if Postal::Config.oidc.enabled?
-Bundler.require(*gem_groups)
+Bundler.require(*Rails.groups)
 
 module Postal
   class Application < Rails::Application
 
-    config.load_defaults 7.0
+    config.load_defaults 6.0
 
     # Disable most generators
     config.generators do |g|
@@ -37,14 +35,12 @@ module Postal
     config.action_view.field_error_proc = proc { |t, _| t }
 
     # Load the tracking server middleware
-    require "tracking_middleware"
-    config.middleware.insert_before ActionDispatch::HostAuthorization, TrackingMiddleware
+    require "postal/tracking_middleware"
+    config.middleware.insert_before ActionDispatch::HostAuthorization, Postal::TrackingMiddleware
 
-    config.hosts << Postal::Config.postal.web_hostname
+    config.logger = Postal.logger_for(:rails)
 
-    unless Postal::Config.logging.rails_log_enabled?
-      config.logger = Logger.new("/dev/null")
-    end
+    config.hosts << Postal.config.web.host
 
   end
 end

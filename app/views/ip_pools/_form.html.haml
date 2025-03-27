@@ -12,6 +12,9 @@
           %td IPv4
           %td IPv6
           %td Hostname
+          -# Sender25 - Added active and blacklist
+          %td Active
+          %td BL
           %td Priority
       %tbody
         - ips = @ip_pool.ip_addresses.order_by_priority
@@ -20,11 +23,18 @@
             %td.dataTable__empty{:colspan => 3} There are no IP addresses assigned to this pool yet.
         - else
           - for ip in ips
-            %tr
-              %td{:width => "20%"}= link_to ip.ipv4, [:edit, @ip_pool, ip], :class => "u-link"
-              %td{:width => "35%"}= ip.ipv6
-              %td{:width => "35%"}= ip.hostname
-              %td{:width => "10%"}= ip.priority
+            -# Sender25 - Added active and blacklist
+            %tr{:class => [("dataTable__blacklist" if ip.blacklist?), ("dataTable__disable" unless ip.active?)]}
+              %td{:width => "13%"}= link_to ip.ipv4, [:edit, @ip_pool, ip], :class => "u-link"
+              %td{:width => "38%"}= ip.ipv6
+              %td{:width => "26%"}= ip.hostname
+              %td{:width => "8%"}
+                %li.checkboxList__item{:style => "padding: 0"}
+                  .checkboxList__checkbox= check_box_tag "ip_active[]", ip.id, ip.active, :id => "ip_active_#{ip.id}"
+              %td{:width => "6%"}
+                %li.checkboxList__item{:style => "padding: 0"}
+                  .checkboxList__checkbox= check_box_tag "ip_blacklist[]", ip.id, ip.blacklist, :id => "ip_blacklist_#{ip.id}"
+              %td{:width => "9%"}= ip.priority
     %p= link_to "Add an IP address to pool", [:new, @ip_pool, :ip_address], :class => "u-link"
 
 

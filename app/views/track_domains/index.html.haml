@@ -10,8 +10,9 @@
   - if @track_domains.empty?
     .noData.noData--clean
       %h2.noData__title There are no tracking domains for this server.
+      -# Sender25 - Change from "Postal" to "Sender25"
       %p.noData__text
-        To use Postal's open & click tracking, you need to configure a domain that links will be re-written to use. Enable
+        To use Sender25's open & click tracking, you need to configure a domain that links will be re-written to use. Enable
         message tracking by adding a suitable tracking domain for your outbound e-mails.
       %p.noData__button= link_to "Add a custom tracking domain", [:new, organization, @server, :track_domain], :class => "button button--positive"
 

@@ -26,7 +26,10 @@ class IPPool < ApplicationRecord
   has_many :servers, dependent: :restrict_with_exception
   has_many :organization_ip_pools, dependent: :destroy
   has_many :organizations, through: :organization_ip_pools
-  has_many :ip_pool_rules, dependent: :destroy
+
+  # Sender25 - remove relationship has_many :ip_pool_roles and add custom has_many :rule_ip_pools
+  # has_many :ip_pool_rules, dependent: :destroy
+  has_many :rule_ip_pools, dependent: :destroy
 
   def self.default
     where(default: true).order(:id).first

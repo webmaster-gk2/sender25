@@ -118,8 +118,7 @@ module Postal
         part.gsub!(/href=(['"])(#{URL_REGEX})['"]/) do
           if track_domain?($~[:domain])
             @tracked_links += 1
-            url = CGI.unescapeHTML($~[:url])
-            token = @message.create_link(url)
+            token = @message.create_link($~[:url])
             "href='#{domain}/#{@message.server.token}/#{token}'"
           else
             ::Regexp.last_match(0)

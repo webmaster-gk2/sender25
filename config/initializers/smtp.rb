@@ -1,17 +1,7 @@
 # frozen_string_literal: true
 
 require "postal/config"
-
-config = Postal::Config.smtp
-
-ActionMailer::Base.delivery_method = :smtp
-ActionMailer::Base.smtp_settings = {
-  address: config.host,
-  user_name: config.username,
-  password: config.password,
-  port: config.port,
-  authentication: config.authentication_type&.to_sym,
-  enable_starttls: config.enable_starttls?,
-  enable_starttls_auto: config.enable_starttls_auto?,
-  openssl_verify_mode: config.openssl_verify_mode
-}
+if Postal.config&.smtp
+  ActionMailer::Base.delivery_method = :smtp
+  ActionMailer::Base.smtp_settings = { address: Postal.config.smtp.host, user_name: Postal.config.smtp.username, password: Postal.config.smtp.password, port: Postal.config.smtp.port || 25 }
+end

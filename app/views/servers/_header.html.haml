@@ -21,12 +21,102 @@
     %ul.serverHeader__statsList
       %li.serverHeader__stat-held
         = link_to "#{pluralize @server.held_messages, 'message'} held", held_organization_server_messages_path(organization, @server), :class => 'js-held-count'
+      -# Sender25 - Add spam view
+      %li.serverHeader__stat-held
+        = link_to "#{pluralize @server.spam_messages, 'message'} spam", outgoing_organization_server_messages_path(organization, @server, :query => "spam: yes status: hardfail"), :class => 'js-held-count'
       %li.serverHeader__stat-queue
         = link_to pluralize(@server.queue_size, 'queued message'), queue_organization_server_path(organization, @server), :class => "js-queue-size"
       %li.serverHeader__stat-bounces
         = link_to "#{number_to_percentage @server.bounce_rate, :precision => 1} bounce rate", outgoing_organization_server_messages_path(organization, @server, :query => "status: hardfail status:bounced"), :class => 'js-bounce-rate'
       %li.serverHeader__stat-size
         = link_to "#{number_to_human_size @server.message_db.total_size} used", [:retention, organization, @server], :class => 'js-disk-size'
+
+  -# Sender25 - Added new statistics
+  .serverHeader__usage{"data-turbolinks-permanent" => true, :id => "serverUsage30d-#{@server.uuid}", :style => "width: auto;"}
+    %p.serverHeader__usageTitle Message throughput &mdash; current month
+
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.local(Time.now.year, Time.now.month, 1, 0, 0, 0)})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing Held messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.local(Time.now.year, Time.now.month, 1, 0, 0, 0), :held => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing Spam messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.local(Time.now.year, Time.now.month, 1, 0, 0, 0), :spam => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.local(Time.now.year, Time.now.month, 1, 0, 0, 0)})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming Held messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.local(Time.now.year, Time.now.month, 1, 0, 0, 0), :held => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming Spam messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.local(Time.now.year, Time.now.month, 1, 0, 0, 0), :spam => 1})
+
+  -# Sender25 - Added new statistics
+  .serverHeader__usage{"data-turbolinks-permanent" => true, :id => "serverUsage7d-#{@server.uuid}", :style => "width: auto;"}
+    %p.serverHeader__usageTitle Message throughput &mdash; last 7 days
+
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.now-7.days})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing Held messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.now-7.days, :held => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing Spam messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.now-7.days, :spam => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.now-7.days})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming Held messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.now-7.days, :held => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming Spam messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.now-7.days, :spam => 1})
+
+  -# Sender25 - Added new statistics
+  .serverHeader__usage{"data-turbolinks-permanent" => true, :id => "serverUsage24h-#{@server.uuid}", :style => "width: auto;"}
+    %p.serverHeader__usageTitle Message throughput &mdash; last 24 hours
+
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.now-24.hours})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing Held messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.now-24.hours, :held => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Outgoing Spam messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'outgoing', :time_start=> Time.now-24.hours, :spam => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.now-24.hours})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming Held messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.now-24.hours, :held => 1})
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Incoming Spam messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = @server.statistic_messages({:scope => 'incoming', :time_start=> Time.now-24.hours, :spam => 1})
 
   .serverHeader__usage{"data-turbolinks-permanent" => true, :id => "serverUsage-#{@server.uuid}"}
     %p.serverHeader__usageTitle Message throughput &mdash; last 60 minutes
@@ -42,6 +132,11 @@
       .serverHeader__usageLineLabel Incoming messages
       .serverHeader__usageLineValue.js-incoming-count
         = number_with_delimiter @server.throughput_stats[:incoming]
+    -# Sender25 - Added spam statistics
+    .serverHeader__usageLine
+      .serverHeader__usageLineLabel Spam messages
+      .serverHeader__usageLineValue.js-incoming-count
+        = number_with_delimiter @server.throughput_stats[:spam]
 
     .serverHeader__usageLine
       .serverHeader__usageLineLabel Message Rate
@@ -58,4 +153,6 @@
     %li.navBar__item= link_to "Credentials", [organization, @server, :credentials], :class => ['navBar__link', active_nav == :credentials ? 'is-active' : '']
     %li.navBar__item= link_to "Webhooks", [organization, @server, :webhooks], :class => ['navBar__link', active_nav == :webhooks ? 'is-active' : '']
     %li.navBar__item= link_to "Settings", [:edit, organization, @server], :class => ['navBar__link', active_nav == :settings ? 'is-active' : '']
+    -# Sender25 - Add statistics link
+    %li.navBar__item= link_to "Statistics", [organization, @server, :statistics], :class => ['navBar__link', active_nav == :statistics ? 'is-active' : '']
     %li.navBar__item.navBar__item--end= link_to "Help", [organization, @server, :help_outgoing], :class => ['navBar__link', active_nav == :help ? 'is-active' : '']

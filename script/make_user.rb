@@ -7,8 +7,9 @@ trap("INT") do
 end
 
 require_relative "../config/environment"
+require "postal/user_creator"
 
-UserCreator.start do |u|
+Postal::UserCreator.start do |u|
   u.admin = true
   u.email_verified_at = Time.now
 end

@@ -2,6 +2,18 @@
   %p
     = link_to "Need help with filtering?", '#', :class => 'messageSearch__help js-toggle-helpbox'
     = text_field_tag 'query', @query, :class => 'messageSearch__input js-focus-on-f js-form-submit', :placeholder => "Filter messages...", :data => {:disable_with => 'Searching...'}
+  -# Sender25 - Added action buttons for filtering
+  - if current_user.admin? && @query && !@query.empty?
+    %ul{ :style => "display: inline-flex;" }
+      %li{ :style => "padding: 15px 15px 0;" }
+        %p.buttonSet
+          = link_to "Release messages of last search", [active_type == 'outgoing' ? :outgoing : :incoming, :retry_search, organization, @server, :messages, :query => @query], :class => "button button--small button--positive", :remote => true, :method => :post
+      %li{ :style => "padding: 15px 15px 0;" }
+        %p.buttonSet
+          = link_to "Remove from queue messages of last search", [active_type == 'outgoing' ? :outgoing : :incoming, :remove_from_queue_search, organization, @server, :messages, :query => @query], :class => "button button--small button--danger", :remote => true, :method => :delete
+      %li{ :style => "padding: 15px 15px 0;" }
+        %p.buttonSet
+          = link_to "Toggle spam of last search", [active_type == 'outgoing' ? :outgoing : :incoming, :toggle_spam_search, organization, @server, :messages, :query => @query], :class => "button button--small button--neutral", :remote => true, :method => :post
 
   .messageSearch__helpBox.is-hidden.js-helpbox
     .messageSearch__left
@@ -12,12 +24,22 @@
         search the content of your messages. To filter though, you can insert any of the strings
         as shown opposite into the box above and press enter.
     .messageSearch__right
+      -# Sender25 - Added "Add character "%" for wildcard." and new helpers
       %dl.messageSearch__definition
         %dt to: rachel@example.com
-        %dd Returns all mail addressed to the address provided.
+        %dd Returns all mail addressed to the address provided. Add character "%" for wildcard.
       %dl.messageSearch__definition
         %dt from: tom@example.com
-        %dd Returns all mail sent from to the address provided.
+        %dd Returns all mail sent from to the address provided. Add character "%" for wildcard.
+      %dl.messageSearch__definition
+        %dt notto: rachel@example.com
+        %dd Returns all mail not addressed to the address provided. Add character "%" for wildcard.
+      %dl.messageSearch__definition
+        %dt notfrom: tom@example.com
+        %dd Returns all mail not sent from to the address provided. Add character "%" for wildcard.
+      %dl.messageSearch__definition
+        %dt subject: "%subject parts%"
+        %dd Returns all mail subject match to query. Add character "%" for wildcard.
       %dl.messageSearch__definition
         %dt status: pending
         %dd Returns all messages with the status provided. The suitable statuses are: <code>pending</code>, <code>sent</code>, <code>held</code>, <code>softfail</code>, <code>hardfail</code> and <code>bounced</code>.
@@ -33,9 +55,10 @@
       %dl.messageSearch__definition
         %dt tag: password-reset
         %dd Returns any message tagged with the tag provided.
+      -# Sender25 - Added spam filter
       %dl.messageSearch__definition
-        %dt spam: yes
-        %dd By default, spam is not shown in results. To show spam instead of non-spam, just add this to the query.
+        %dt spam: yes | no
+        %dd By default, spam is shown in results. To not show spam instead, just add "no" to the query. To show only spam instead, just add "yes" to the query.
       %dl.messageSearch__definition
         %dt order: oldest-first
         %dd By default, newest messages are shown first. To show oldest messages first, you can add this.

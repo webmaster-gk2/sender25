@@ -5,4 +5,6 @@
     %li.navBar__item= link_to "Queue", [:queue, organization, @server], :class => ['navBar__link', active_nav == :queue ? 'is-active' : '']
     %li.navBar__item= link_to "Held", [:held, organization, @server, :messages], :class => ['navBar__link', active_nav == :held ? 'is-active' : '']
     %li.navBar__item= link_to "Send Message", [:new, organization, @server, :message], :class => ['navBar__link', active_nav == :new ? 'is-active' : '']
-    %li.navBar__item= link_to "Suppressions", [:suppressions, organization, @server, :messages], :class => ['navBar__link', active_nav == :suppressions ? 'is-active' : '']
+    -# Sender25 - Removed server suppression list
+    //- if current_user.admin?
+    //  %li.navBar__item= link_to "Suppressions", [:suppressions, organization, @server, :messages], :class => ['navBar__link', active_nav == :suppressions ? 'is-active' : '']

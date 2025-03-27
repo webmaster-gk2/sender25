@@ -24,6 +24,20 @@ class IPPoolsController < ApplicationController
 
   def update
     if @ip_pool.update(safe_params)
+      # Sender25 - Added functionality to edit the fields :active and :blacklist when saving the ip pool
+      for ip_address in @ip_pool.ip_addresses
+        if !params[:ip_active].nil? && params[:ip_active].include?(ip_address.id.to_s)
+          ip_address.active = 1
+        else
+          ip_address.active = 0
+        end
+        if !params[:ip_blacklist].nil? && params[:ip_blacklist].include?(ip_address.id.to_s)
+          ip_address.blacklist = 1
+        else
+          ip_address.blacklist = 0
+        end
+        ip_address.save!
+      end
       redirect_to_with_json [:edit, @ip_pool], notice: "IP Pool has been updated."
     else
       render_form_errors "edit", @ip_pool

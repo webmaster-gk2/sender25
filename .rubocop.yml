@@ -6,7 +6,6 @@ AllCops:
     - "db/schema.rb"
     # Fixes missing gem exception when running Rubocop on GitHub Actions.
     - "vendor/bundle/**/*"
-    - lib/tasks/auto_annotate_models.rake
 
 # Always use double quotes
 Style/StringLiterals:
@@ -124,9 +123,6 @@ Metrics/ParameterLists:
 Style/MultilineBlockChain:
   Exclude:
     - "spec/**/*.rb"
-
-Style/TrailingCommaInArrayLiteral:
-  EnforcedStyleForMultiline: consistent_comma
 
 Metrics/AbcSize:
   Enabled: false

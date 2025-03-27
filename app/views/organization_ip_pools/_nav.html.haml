@@ -1,4 +1,5 @@
 .navBar.navBar--secondary
   %ul
     %li.navBar__item= link_to "IP Pools", organization_ip_pools_path(organization), :class => ['navBar__link', active_nav == :ips ? 'is-active' : '']
-    %li.navBar__item= link_to "Rules", organization_ip_pool_rules_path(organization), :class => ['navBar__link', active_nav == :rules ? 'is-active' : '']
+    -# Sender25 - Using custom rules instead of default
+    %li.navBar__item= link_to "Rules", organization_rules_path(organization), :class => ['navBar__link', active_nav == :rules ? 'is-active' : '']

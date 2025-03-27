@@ -6,8 +6,6 @@ module Net
     attr_accessor :source_address
 
     def secure_socket?
-      return false unless @socket
-
       @socket.io.is_a?(OpenSSL::SSL::SSLSocket)
     end
 

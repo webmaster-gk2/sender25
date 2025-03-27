@@ -76,3 +76,20 @@
     .u-link { color:#cd2f3b;}
   }
 }
+
+// Sender25 - Add new class for ip list and blacklist
+.dataTable__disable td {
+  background: #fbe3a5 !important;
+}
+
+.dataTable__disable:nth-child(even) td {
+  background: #ffecbc !important;;
+}
+
+.dataTable__blacklist td {
+  background: #ffccd5 !important;;
+}
+
+.dataTable__blacklist:nth-child(even) td {
+  background: #f7bec8 !important;;
+}

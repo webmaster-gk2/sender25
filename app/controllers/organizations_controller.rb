@@ -2,7 +2,9 @@
 
 class OrganizationsController < ApplicationController
 
-  before_action :admin_required, only: [:new, :create, :delete, :destroy]
+  # Sender25 - Added and changed access restrictions
+  before_action :admin_required, only: [:new, :create]
+  before_action :require_organization_owner, only: [:edit, :update, :delete, :destroy]
 
   def index
     if current_user.admin?
@@ -43,11 +45,10 @@ class OrganizationsController < ApplicationController
   end
 
   def destroy
-    if params[:confirm_text].blank? || params[:confirm_text].downcase.strip != organization.name.downcase.strip
+    unless current_user.authenticate(params[:password])
       respond_to do |wants|
-        alert_text = "The text you entered does not match the organization name. Please check and try again."
-        wants.html { redirect_to organization_delete_path(@organization), alert: alert_text }
-        wants.json { render json: { alert: alert_text } }
+        wants.html { redirect_to organization_delete_path(@organization), alert: "The password you entered was not valid. Please check and try again." }
+        wants.json { render json: { alert: "The password you entered was invalid. Please check and try again." } }
       end
       return
     end

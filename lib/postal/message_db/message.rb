@@ -39,10 +39,6 @@ module Postal
         @attributes = attributes
       end
 
-      def reload
-        self.class.find_one(@database, @attributes["id"])
-      end
-
       #
       # Return the server for this message
       #
@@ -103,7 +99,7 @@ module Postal
       end
 
       #
-      # Return the time that the last delivery was attempted
+      #  Return the time that the last delivery was attempted
       #
       def last_delivery_attempt
         @last_delivery_attempt ||= @attributes["last_delivery_attempt"] ? Time.zone.at(@attributes["last_delivery_attempt"]) : nil
@@ -128,7 +124,7 @@ module Postal
       #
       def create_delivery(status, options = {})
         delivery = Delivery.create(self, options.merge(status: status))
-        hold_expiry = status == "Held" ? Postal::Config.postal.default_maximum_hold_expiry_days.days.from_now.to_f : nil
+        hold_expiry = status == "Held" ? Postal.config.general.maximum_hold_expiry_days.days.from_now.to_f : nil
         update(status: status, last_delivery_attempt: delivery.timestamp.to_f, held: status == "Held", hold_expiry: hold_expiry)
         delivery
       end
@@ -140,6 +136,15 @@ module Postal
         @deliveries ||= @database.select("deliveries", where: { message_id: id }, order: :timestamp).map do |hash|
           Delivery.new(self, hash)
         end
+      end
+
+      #
+      # Return deliveries hardfail with except for this object
+      #
+      # Sender25 - Function to count hardfail deliveries with exceptions
+      def deliveries_hardfail_except_count
+        exceptions = Postal.config.general.exception_codes_suppression_list.split(",")
+        @database.select("deliveries", where: { message_id: id, output: {not_content: exceptions}, status: "HardFail", timestamp: {greater_than: 24.hours.ago.to_f}}, count: true)
       end
 
       #
@@ -172,14 +177,14 @@ module Postal
       end
 
       #
-      # Return all activity entries
+      #  Return all activity entries
       #
       def activity_entries
         @activity_entries ||= (deliveries + clicks + loads).sort_by(&:timestamp)
       end
 
       #
-      # Provide access to set and get acceptable attributes
+      #  Provide access to set and get acceptable attributes
       #
       def method_missing(name, value = nil, &block)
         if @attributes.key?(name.to_s)
@@ -202,11 +207,11 @@ module Postal
       end
 
       #
-      # Save this message
+      #  Save this message
       #
-      def save(queue_on_create: true)
+      def save
         save_raw_message
-        persisted? ? _update : _create(queue: queue_on_create)
+        persisted? ? _update : _create
         self
       end
 
@@ -223,7 +228,7 @@ module Postal
       end
 
       #
-      # Delete the message from the database
+      #  Delete the message from the database
       #
       def delete
         return unless persisted?
@@ -232,7 +237,7 @@ module Postal
       end
 
       #
-      # Return the headers
+      #  Return the headers
       #
       def raw_headers
         if raw_table
@@ -243,7 +248,7 @@ module Postal
       end
 
       #
-      # Return the full raw message body for this message.
+      #  Return the full raw message body for this message.
       #
       def raw_body
         if raw_table
@@ -303,7 +308,7 @@ module Postal
       end
 
       #
-      # Return the HTML body for this message
+      #  Return the HTML body for this message
       #
       def html_body
         mail&.html_body
@@ -350,14 +355,8 @@ module Postal
       #
       # Create a new item in the message queue for this message
       #
-      def add_to_message_queue(**options)
-        QueuedMessage.create!({
-          message: self,
-          server_id: @database.server_id,
-          batch_key: batch_key,
-          domain: recipient_domain,
-          route_id: route_id
-        }.merge(options))
+      def add_to_message_queue(options = {})
+        QueuedMessage.create!(message: self, server_id: @database.server_id, batch_key: batch_key, domain: recipient_domain, route_id: route_id, manual: options[:manual]).id
       end
 
       #
@@ -404,7 +403,8 @@ module Postal
       # Does this message have our DKIM header yet?
       #
       def has_outgoing_headers?
-        !!(raw_headers =~ /^X-Postal-MsgID:/i)
+        # Sender25 - Changed from "Postal" to "Sender25"
+        !!(raw_headers =~ /^X\-Sender25\-MsgID\:/i)
       end
 
       #
@@ -413,10 +413,11 @@ module Postal
       def add_outgoing_headers
         headers = []
         if domain
-          dkim = DKIMHeader.new(domain, raw_message)
+          dkim = Postal::DKIMHeader.new(domain, raw_message)
           headers << dkim.dkim_header
         end
-        headers << "X-Postal-MsgID: #{token}"
+        # Sender25 - Changed from "Postal" to "Sender25"
+        headers << "X-Sender25-MsgID: #{token}"
         append_headers(*headers)
       end
 
@@ -455,11 +456,7 @@ module Postal
       #
       def bounce!(bounce_message)
         create_delivery("Bounced", details: "We've received a bounce message for this e-mail. See <msg:#{bounce_message.id}> for details.")
-
-        WebhookRequest.trigger(server, "MessageBounced", {
-          original_message: webhook_hash,
-          bounce: bounce_message.webhook_hash
-        })
+        SendWebhookJob.queue(:main, server_id: database.server_id, event: "MessageBounced", payload: { _original_message: id, _bounce: bounce_message.id })
       end
 
       #
@@ -475,31 +472,27 @@ module Postal
       def create_load(request)
         update("loaded" => Time.now.to_f) if loaded.nil?
         database.insert(:loads, { message_id: id, ip_address: request.ip, user_agent: request.user_agent, timestamp: Time.now.to_f })
-
-        WebhookRequest.trigger(server, "MessageLoaded", {
-          message: webhook_hash,
-          ip_address: request.ip,
-          user_agent: request.user_agent
-        })
+        SendWebhookJob.queue(:main, server_id: database.server_id, event: "MessageLoaded", payload: { _message: id, ip_address: request.ip, user_agent: request.user_agent })
       end
 
       #
-      # Create a new link
+      #  Create a new link
       #
       def create_link(url)
         hash = Digest::SHA1.hexdigest(url.to_s)
-        token = SecureRandom.alphanumeric(16)
+        token = Nifty::Utils::RandomString.generate(length: 8)
         database.insert(:links, { message_id: id, hash: hash, url: url, timestamp: Time.now.to_f, token: token })
         token
       end
 
       #
-      # Return a message object that this message is a reply to
+      #  Return a message object that this message is a reply to
       #
       def original_messages
         return nil unless bounce
 
-        other_message_ids = raw_message.scan(/\X-Postal-MsgID:\s*([a-z0-9]+)/i).flatten
+        # Sender25 - Changed from "Postal" to "Sender25"
+        other_message_ids = raw_message.scan(/\X\-Sender25\-MsgID\:\s*([a-z0-9]+)/i).flatten
         if other_message_ids.empty?
           []
         else
@@ -511,7 +504,7 @@ module Postal
       # Was thsi message sent to a return path?
       #
       def rcpt_to_return_path?
-        !!(rcpt_to =~ /@#{Regexp.escape(Postal::Config.dns.custom_return_path_prefix)}\./)
+        !!(rcpt_to =~ /@#{Regexp.escape(Postal.config.dns.custom_return_path_prefix)}\./)
       end
 
       #
@@ -531,7 +524,26 @@ module Postal
       end
 
       #
-      # Return all spam checks for this message
+      # Re-Inspect this message
+      #
+      # Sender25 - Function for message reinspection
+      def reinspect_message
+        if result = MessageInspection.new(raw_message, scope&.to_sym, spam == 1 ? 2 : 1)
+          unless result.error_detected
+            # Remove any old spam details into the spam checks database
+            database.delete(:spam_checks, where: { message_id: id })
+            # Update the messages table with the results of our new inspection
+            update(inspected: true, spam_score: result.filtered_spam_score, threat: result.threat?, threat_details: result.threat_message)
+            # Add any new spam details into the spam checks database
+            database.insert_multi(:spam_checks, [:message_id, :code, :score, :description], result.filtered_spam_checks.map { |d| [self.id, d.code, d.score, d.description]})
+            # Return the result
+            result
+          end
+        end
+      end
+
+      #
+      #  Return all spam checks for this message
       #
       def spam_checks
         @spam_checks ||= database.select(:spam_checks, where: { message_id: id })
@@ -552,7 +564,7 @@ module Postal
       def parse_content
         parse_result = Postal::MessageParser.new(self)
         if parse_result.actioned?
-          # Somethign was changed, update the raw message
+          #  Somethign was changed, update the raw message
           @database.update(raw_table, { data: parse_result.new_body }, where: { id: raw_body_id })
           @database.update(raw_table, { data: parse_result.new_headers }, where: { id: raw_headers_id })
           @raw = parse_result.new_body
@@ -582,16 +594,16 @@ module Postal
         @database.update("messages", @attributes.except(:id), where: { id: @attributes["id"] })
       end
 
-      def _create(queue: true)
+      def _create
         self.timestamp = Time.now.to_f if timestamp.blank?
         self.status = "Pending" if status.blank?
-        self.token = SecureRandom.alphanumeric(16) if token.blank?
+        self.token = Nifty::Utils::RandomString.generate(length: 12) if token.blank?
         last_id = @database.insert("messages", @attributes.except(:id))
         @attributes["id"] = last_id
         @database.statistics.increment_all(timestamp, scope)
         Statistic.global.increment!(:total_messages)
         Statistic.global.increment!("total_#{scope}".to_sym)
-        add_to_message_queue if queue
+        add_to_message_queue
       end
 
       def mail
