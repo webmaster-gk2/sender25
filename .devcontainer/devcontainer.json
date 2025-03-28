@@ -1,0 +1,17 @@
+{
+    "name": "Sender25 Dev Container",
+    "dockerComposeFile": ["../docker-compose.yml"],
+    "service": "app",
+    "workspaceFolder": "/workspace",
+    "extensions": [
+        "rebornix.ruby",
+        "castwide.solargraph",
+        "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode"
+    ],
+    "settings": {
+        "ruby.interpreter.commandPath": "/usr/local/bin/ruby"
+    },
+    "postCreateCommand": "bundle install && yarn install",
+    "remoteUser": "root"
+}
