@@ -12,12 +12,18 @@ Rails.application.routes.draw do
       match :verify, on: :member, via: [:get, :post]
       get :setup, on: :member
       post :check, on: :member
+      member do
+        patch :update_dkim_key
+      end
     end
     resources :servers, except: [:index] do
       resources :domains, only: [:index, :new, :create, :destroy] do
         match :verify, on: :member, via: [:get, :post]
         get :setup, on: :member
         post :check, on: :member
+        member do
+          patch :update_dkim_key
+        end
       end
       resources :track_domains do
         post :toggle_ssl, on: :member

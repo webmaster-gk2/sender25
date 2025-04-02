@@ -7,9 +7,13 @@ class DomainsController < ApplicationController
   before_action do
     if params[:server_id]
       @server = organization.servers.present.find_by_permalink!(params[:server_id])
-      params[:id] && @domain = @server.domains.find_by_uuid!(params[:id])
+      if params[:id]
+        @domain = @server.domains.find_by_uuid!(params[:id])
+      end
     else
-      params[:id] && @domain = organization.domains.find_by_uuid!(params[:id])
+      if params[:id]
+        @domain = organization.domains.find_by_uuid!(params[:id])
+      end
     end
   end
 
@@ -103,6 +107,35 @@ class DomainsController < ApplicationController
       redirect_to_with_json [organization, @server, :domains], notice: "Your DNS records for #{@domain.name} look good!"
     else
       redirect_to_with_json [:setup, organization, @server, @domain], alert: "There seems to be something wrong with your DNS records. Check below for information."
+    end
+  end
+
+  def update_dkim_key
+    if params[:dkim_private_key].present?
+      begin
+        # Validate the key is a valid RSA private key
+        key = OpenSSL::PKey::RSA.new(params[:dkim_private_key])
+        
+        # Update the key and mark it as custom
+        @domain.dkim_private_key = params[:dkim_private_key]
+        @domain.custom_dkim_key = true
+        
+        if @domain.save
+          # Reload the domain to ensure changes are reflected
+          @domain.reload
+          
+          # Trigger DNS check to verify the DKIM record
+          @domain.check_dkim_record!
+          
+          redirect_to_with_json [:setup, organization, @server, @domain], notice: "DKIM key updated successfully"
+        else
+          render_form_errors "setup", @domain
+        end
+      rescue OpenSSL::PKey::RSAError => e
+        redirect_to_with_json [:setup, organization, @server, @domain], alert: "Invalid RSA private key: #{e.message}"
+      end
+    else
+      redirect_to_with_json [:setup, organization, @server, @domain], alert: "No DKIM key provided"
     end
   end
 
