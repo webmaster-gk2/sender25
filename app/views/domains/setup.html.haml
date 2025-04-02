@@ -61,6 +61,32 @@
     with the following content.
   %pre.codeBlock.u-margin= @domain.dkim_record
 
+  %h3.pageContent__subTitle Custom DKIM Key
+  - if @domain.custom_dkim_key?
+    %p.pageContent__text.u-green.u-bold
+      %span.label.label--green Custom Key
+      You are using a custom DKIM key for this domain.
+  - else
+    %p.pageContent__text.u-grey.u-bold
+      %span.label.label--grey Default Key
+      You are using the automatically generated DKIM key.
+
+  %p.pageContent__text
+    You can provide your own RSA private key below. This is optional and only recommended if you need to use a specific key for compatibility with other systems.
+    The key must be a valid RSA private key in PEM format.
+
+  = form_tag (@server ? update_dkim_key_organization_server_domain_path(organization, @server, @domain) : update_dkim_key_organization_domain_path(organization, @domain)), method: :patch, data: { turbo: false }, class: "form" do
+    .form-group
+      = text_area_tag :dkim_private_key, nil, class: "form-control input--code", rows: 10, placeholder: "-----BEGIN RSA PRIVATE KEY-----\n\n-----END RSA PRIVATE KEY-----", style: "width: 100%; font-family: 'Droid Sans Mono', fixed;"
+      %p.form-help.u-margin
+        Paste your RSA private key here. The key should be in PEM format.
+        %br
+        %strong Warning: 
+        Make sure to keep your private key secure and never share it publicly.
+
+    .form-group.u-margin
+      = submit_tag "Update DKIM Key", class: "button button--primary"
+
   %h3.pageContent__subTitle Return Path
   - if @domain.return_path_status == 'OK'
     %p.pageContent__text.u-green.u-bold
