@@ -1,6 +1,6 @@
-# This is an example Postal configuration file for use in 
+# This is an example Sender25 configuration file for use in 
 # test environments. For a production example, see
-# the https://github.com/postalserver/install repository.
+# the https://github.com/sender25server/install repository.
 
 version: 2
 
@@ -8,13 +8,13 @@ main_db:
   host: 127.0.0.1
   username: root
   password: 
-  database: postal-test
+  database: sender25-test
 
 message_db:
   host: 127.0.0.1
   username: root
   password: 
-  prefix: postal-test
+  prefix: sender25-test
 
 logging:
   enabled: false

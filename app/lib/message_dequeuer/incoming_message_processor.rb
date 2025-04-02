@@ -71,10 +71,10 @@ module MessageDequeuer
       end
 
       queued_message.message.append_headers(
-        "X-Postal-Spam: #{queued_message.message.spam ? 'yes' : 'no'}",
-        "X-Postal-Spam-Threshold: #{queued_message.server.spam_threshold}",
-        "X-Postal-Spam-Score: #{queued_message.message.spam_score}",
-        "X-Postal-Threat: #{queued_message.message.threat ? 'yes' : 'no'}"
+        "X-Sender25-Spam: #{queued_message.message.spam ? 'yes' : 'no'}",
+        "X-Sender25-Spam-Threshold: #{queued_message.server.spam_threshold}",
+        "X-Sender25-Spam-Score: #{queued_message.message.spam_score}",
+        "X-Sender25-Threat: #{queued_message.message.threat ? 'yes' : 'no'}"
       )
       log "message inspected, headers added", spam: queued_message.message.spam?, spam_score: queued_message.message.spam_score, threat: queued_message.message.threat?
     end

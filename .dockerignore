@@ -5,7 +5,7 @@
 .vscode/*
 .yardoc/*
 /.bundle
-config/postal/*
+config/sender25/*
 doc/*
 Dockerfile
 log/*

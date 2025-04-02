@@ -7,7 +7,7 @@ module GlobalMessageDB
     def find_or_create
       return @db if @db
 
-      @db = Postal::MessageDB::Database.new(1, 1, database_name: "postal-test-message-db")
+      @db = Sender25::MessageDB::Database.new(1, 1, database_name: "sender25-test-message-db")
       @db.provisioner.provision
     end
 
@@ -27,7 +27,7 @@ RSpec.configure do |config|
 
       message_db = m.call
       @mocked_message_dbs << message_db
-      allow(message_db).to receive(:database_name).and_return("postal-test-message-db")
+      allow(message_db).to receive(:database_name).and_return("sender25-test-message-db")
       message_db
     end
   end

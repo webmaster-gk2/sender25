@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We only support updates to the 3.x versions of Postal.
+We only support updates to the 3.x versions of Sender25.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -11,5 +11,5 @@ We only support updates to the 3.x versions of Postal.
 
 ## Reporting a Vulnerability
 
-If you discover a vulnerability in Postal, please do not post an issue on GitHub. Instead you should send an
-e-mail to security@postalserver.io with details. We will get back to you directly.
+If you discover a vulnerability in Sender25, please do not post an issue on GitHub. Instead you should send an
+e-mail to security@sender25server.io with details. We will get back to you directly.

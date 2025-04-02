@@ -97,7 +97,7 @@ Rails.application.routes.draw do
   match "login/reset" => "sessions#begin_password_reset", :via => [:get, :post]
   match "login/reset/:token" => "sessions#finish_password_reset", :via => [:get, :post]
 
-  if Postal::Config.oidc.enabled?
+  if Sender25::Config.oidc.enabled?
     get "auth/oidc/callback", to: "sessions#create_from_oidc"
   end
 

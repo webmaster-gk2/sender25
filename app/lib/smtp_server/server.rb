@@ -11,12 +11,12 @@ module SMTPServer
     class << self
 
       def tls_private_key
-        @tls_private_key ||= OpenSSL::PKey.read(File.read(Postal::Config.smtp_server.tls_private_key_path))
+        @tls_private_key ||= OpenSSL::PKey.read(File.read(Sender25::Config.smtp_server.tls_private_key_path))
       end
 
       def tls_certificates
         @tls_certificates ||= begin
-          data = File.read(Postal::Config.smtp_server.tls_certificate_path)
+          data = File.read(Sender25::Config.smtp_server.tls_certificate_path)
           certs = data.scan(/-----BEGIN CERTIFICATE-----.+?-----END CERTIFICATE-----/m)
           certs.map do |c|
             OpenSSL::X509::Certificate.new(c)
@@ -63,15 +63,15 @@ module SMTPServer
         ssl_context.cert = self.class.tls_certificates[0]
         ssl_context.extra_chain_cert = self.class.tls_certificates[1..]
         ssl_context.key = self.class.tls_private_key
-        ssl_context.ssl_version = Postal::Config.smtp_server.ssl_version if Postal::Config.smtp_server.ssl_version
-        ssl_context.ciphers = Postal::Config.smtp_server.tls_ciphers if Postal::Config.smtp_server.tls_ciphers
+        ssl_context.ssl_version = Sender25::Config.smtp_server.ssl_version if Sender25::Config.smtp_server.ssl_version
+        ssl_context.ciphers = Sender25::Config.smtp_server.tls_ciphers if Sender25::Config.smtp_server.tls_ciphers
         ssl_context
       end
     end
 
     def listen
-      bind_address = ENV.fetch("BIND_ADDRESS", Postal::Config.smtp_server.default_bind_address)
-      port = ENV.fetch("PORT", Postal::Config.smtp_server.default_port)
+      bind_address = ENV.fetch("BIND_ADDRESS", Sender25::Config.smtp_server.default_bind_address)
+      port = ENV.fetch("PORT", Sender25::Config.smtp_server.default_port)
 
       @server = TCPServer.open(bind_address, port)
       @server.autoclose = false
@@ -111,25 +111,25 @@ module SMTPServer
             begin
               # Accept the connection
               new_io = io.accept
-              increment_prometheus_counter :postal_smtp_server_connections_total
+              increment_prometheus_counter :sender25_smtp_server_connections_total
               # Get the client's IP address and strip `::ffff:` for consistency.
               client_ip_address = new_io.remote_address.ip_address.sub(/\A::ffff:/, "")
-              if Postal::Config.smtp_server.proxy_protocol?
+              if Sender25::Config.smtp_server.proxy_protocol?
                 # If we are using the haproxy proxy protocol, we will be sent the
                 # client's IP later. Delay the welcome process.
                 client = Client.new(nil)
-                if Postal::Config.smtp_server.log_connections?
+                if Sender25::Config.smtp_server.log_connections?
                   client.logger&.debug "Connection opened from #{client_ip_address}"
                 end
               else
                 # We're not using the proxy protocol so we already know the client's IP
                 client = Client.new(client_ip_address)
-                if Postal::Config.smtp_server.log_connections?
+                if Sender25::Config.smtp_server.log_connections?
                   client.logger&.debug "Connection opened from #{client_ip_address}"
                 end
                 # We know who the client is, welcome them.
                 client.logger&.debug "Client identified as #{client_ip_address}"
-                new_io.print("220 #{Postal::Config.postal.smtp_hostname} ESMTP Postal/#{client.trace_id}")
+                new_io.print("220 #{Sender25::Config.sender25.smtp_hostname} ESMTP Sender25/#{client.trace_id}")
               end
               # Register the client and its socket with nio4r
               monitor = @io_selector.register(new_io, :r)
@@ -148,7 +148,7 @@ module SMTPServer
               e.backtrace.each do |line|
                 logger.error line
               end
-              increment_prometheus_counter :postal_smtp_server_exceptions_total,
+              increment_prometheus_counter :sender25_smtp_server_exceptions_total,
                                            labels: { error: e.class.to_s, type: "client-accept" }
               begin
                 new_io.close
@@ -169,7 +169,7 @@ module SMTPServer
                   # Can we accept the TLS connection at this time?
                   io.accept_nonblock
                   # Increment prometheus
-                  increment_prometheus_counter :postal_smtp_server_tls_connections_total
+                  increment_prometheus_counter :sender25_smtp_server_tls_connections_total
                   # We were able to accept the connection, the client is no longer handshaking
                   client.start_tls = false
                 rescue IO::WaitReadable, IO::WaitWritable => e
@@ -260,7 +260,7 @@ module SMTPServer
                 logger.error iline, trace_id: client_id
               end
 
-              increment_prometheus_counter :postal_smtp_server_exceptions_total,
+              increment_prometheus_counter :sender25_smtp_server_exceptions_total,
                                            labels: { error: e.class.to_s, type: "data" }
 
               # Close all IO and forget this client
@@ -296,18 +296,18 @@ module SMTPServer
     end
 
     def logger
-      Postal.logger
+      Sender25.logger
     end
 
     def register_prometheus_metrics
-      register_prometheus_counter :postal_smtp_server_connections_total,
-                                  docstring: "The number of connections made to the Postal SMTP server."
+      register_prometheus_counter :sender25_smtp_server_connections_total,
+                                  docstring: "The number of connections made to the Sender25 SMTP server."
 
-      register_prometheus_counter :postal_smtp_server_exceptions_total,
+      register_prometheus_counter :sender25_smtp_server_exceptions_total,
                                   docstring: "The number of server exceptions encountered by the SMTP server",
                                   labels: [:type, :error]
 
-      register_prometheus_counter :postal_smtp_server_tls_connections_total,
+      register_prometheus_counter :sender25_smtp_server_tls_connections_total,
                                   docstring: "The number of successfuly TLS connections established"
 
       Client.register_prometheus_metrics

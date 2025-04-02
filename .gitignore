@@ -16,13 +16,13 @@
 # Ignore Byebug command history file.
 .byebug_history
 
-config/postal.yml
+config/sender25.yml
 config/smtp.cert
 config/smtp.key
 config/signing.key
-config/postal/**/*
+config/sender25/**/*
 
-spec/config/postal.local.yml
+spec/config/sender25.local.yml
 
 public/assets
 vendor/bundle

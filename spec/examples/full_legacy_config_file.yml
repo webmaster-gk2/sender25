@@ -1,13 +1,13 @@
-# This a legacy configuration file format which was used in Postal version
+# This a legacy configuration file format which was used in Sender25 version
 # less than v3. It remains supported in v3+ by mapping these values to their
-# correct values. Support for this file format will be removed in Postal v4.
+# correct values. Support for this file format will be removed in Sender25 v4.
 #
 # It exists here for reference but also to faciliate testing to ensure the
 # legacy mapping works as expected
 version: 1
 
 web:
-  host: postal.llamas.com
+  host: sender25.llamas.com
   protocol: https
 
 general:
@@ -29,18 +29,18 @@ web_server:
 main_db:
   host: localhost
   port: 3306
-  username: postal
+  username: sender25
   password: t35tpassword
-  database: postal
+  database: sender25
   pool_size: 20
   encoding: utf8mb4
 
 message_db:
   host: localhost
   port: 3306
-  username: postal
+  username: sender25
   password: p05t41
-  prefix: postal
+  prefix: sender25
 
 logging:
   rails_log: true
@@ -71,25 +71,25 @@ smtp_relays:
 
 dns:
   mx_records:
-    - mx1.postal.llamas.com
-    - mx2.postal.llamas.com
-  smtp_server_hostname: smtp.postal.llamas.com
-  spf_include: spf.postal.llamas.com
-  return_path: rp.postal.llamas.com
-  route_domain: routes.postal.llamas.com
-  track_domain: track.postal.llamas.com
-  helo_hostname: helo.postal.llamas.com
-  dkim_identifier: postal
-  domain_verify_prefix: postal-verification
+    - mx1.sender25.llamas.com
+    - mx2.sender25.llamas.com
+  smtp_server_hostname: smtp.sender25.llamas.com
+  spf_include: spf.sender25.llamas.com
+  return_path: rp.sender25.llamas.com
+  route_domain: routes.sender25.llamas.com
+  track_domain: track.sender25.llamas.com
+  helo_hostname: helo.sender25.llamas.com
+  dkim_identifier: sender25
+  domain_verify_prefix: sender25-verification
   custom_return_path_prefix: psrp
 
 smtp:
   host: 127.0.0.1
   port: 25
-  username: postalserver
+  username: sender25server
   password: llama
-  from_name: Postal
-  from_address: postal@llamas.com
+  from_name: Sender25
+  from_address: sender25@llamas.com
 
 rails:
   environment: production

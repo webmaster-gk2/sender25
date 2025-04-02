@@ -49,7 +49,7 @@ module MessageDequeuer
       let(:message) do
         MessageFactory.incoming(server) do |msg, mail|
           msg.bounce = true
-          mail["X-Postal-MsgID"] = existing_message.token
+          mail["X-Sender25-MsgID"] = existing_message.token
         end
       end
 
@@ -108,15 +108,15 @@ module MessageDequeuer
         expect { processor.process }.to change { message.reload.inspected }.from(false).to(true)
         new_message = message.reload
         expect(new_message.headers).to match hash_including(
-          "x-postal-spam" => ["no"],
-          "x-postal-spam-threshold" => ["5.0"],
-          "x-postal-threat" => ["no"]
+          "x-sender25-spam" => ["no"],
+          "x-sender25-spam-threshold" => ["5.0"],
+          "x-sender25-threat" => ["no"]
         )
       end
 
       it "marks the message as spam if the spam score is higher than the server threshold" do
         inspection_result = double("Result", spam_score: server.spam_threshold + 1, threat: false, threat_message: nil, spam_checks: [])
-        allow(Postal::MessageInspection).to receive(:scan).and_return(inspection_result)
+        allow(Sender25::MessageInspection).to receive(:scan).and_return(inspection_result)
         processor.process
         expect(message.reload.spam).to be true
       end
@@ -125,7 +125,7 @@ module MessageDequeuer
     context "when the message has a spam score greater than the server's spam failure threshold" do
       before do
         inspection_result = double("Result", spam_score: 100, threat: false, threat_message: nil, spam_checks: [])
-        allow(Postal::MessageInspection).to receive(:scan).and_return(inspection_result)
+        allow(Sender25::MessageInspection).to receive(:scan).and_return(inspection_result)
       end
 
       it "logs" do
@@ -211,7 +211,7 @@ module MessageDequeuer
 
       before do
         inspection_result = double("Result", spam_score: server.spam_threshold + 1, threat: false, threat_message: nil, spam_checks: [])
-        allow(Postal::MessageInspection).to receive(:scan).and_return(inspection_result)
+        allow(Sender25::MessageInspection).to receive(:scan).and_return(inspection_result)
       end
 
       it "logs" do
@@ -241,7 +241,7 @@ module MessageDequeuer
 
       before do
         inspection_result = double("Result", spam_score: server.spam_threshold + 1, threat: false, threat_message: nil, spam_checks: [])
-        allow(Postal::MessageInspection).to receive(:scan).and_return(inspection_result)
+        allow(Sender25::MessageInspection).to receive(:scan).and_return(inspection_result)
       end
 
       it "logs" do

@@ -67,10 +67,10 @@ module MessageDequeuer
       end
     end
 
-    context "when the message has a x-postal-tag header" do
+    context "when the message has a x-sender25-tag header" do
       let(:message) do
         MessageFactory.outgoing(server, domain: domain) do |_msg, mail|
-          mail["x-postal-tag"] = "example-tag"
+          mail["x-sender25-tag"] = "example-tag"
         end
       end
 
@@ -167,7 +167,7 @@ module MessageDequeuer
         allow(mocked_parser).to receive(:actioned?).and_return(false)
         allow(mocked_parser).to receive(:tracked_links).and_return(0)
         allow(mocked_parser).to receive(:tracked_images).and_return(0)
-        expect(Postal::MessageParser).to receive(:new).with(kind_of(Postal::MessageDB::Message)).and_return(mocked_parser)
+        expect(Sender25::MessageParser).to receive(:new).with(kind_of(Sender25::MessageDB::Message)).and_return(mocked_parser)
         processor.process
         reloaded_message = message.reload
         expect(reloaded_message.parsed).to eq 1
@@ -187,14 +187,14 @@ module MessageDequeuer
 
       it "inspects the message" do
         inspection_result = double("Result", spam_score: 1.0, threat: false, threat_message: nil, spam_checks: [])
-        expect(Postal::MessageInspection).to receive(:scan).and_return(inspection_result)
+        expect(Sender25::MessageInspection).to receive(:scan).and_return(inspection_result)
         processor.process
       end
 
       context "when the message spam score is higher than the threshold" do
         before do
           inspection_result = double("Result", spam_score: 6.0, threat: false, threat_message: nil, spam_checks: [])
-          allow(Postal::MessageInspection).to receive(:scan).and_return(inspection_result)
+          allow(Sender25::MessageInspection).to receive(:scan).and_return(inspection_result)
         end
 
         it "logs" do
@@ -227,21 +227,21 @@ module MessageDequeuer
 
     context "when the server does not have a outbound spam threshold configured" do
       it "does not inspect the message" do
-        expect(Postal::MessageInspection).to_not receive(:scan)
+        expect(Sender25::MessageInspection).to_not receive(:scan)
         processor.process
       end
     end
 
-    context "when the message already has an x-postal-msgid header" do
+    context "when the message already has an x-sender25-msgid header" do
       let(:message) do
         MessageFactory.outgoing(server, domain: domain, credential: credential) do |_, mail|
-          mail["x-postal-msgid"] = "existing-id"
+          mail["x-sender25-msgid"] = "existing-id"
         end
       end
 
       it "does not another one" do
         processor.process
-        expect(message.reload.headers["x-postal-msgid"]).to eq ["existing-id"]
+        expect(message.reload.headers["x-sender25-msgid"]).to eq ["existing-id"]
       end
 
       it "does not add dkim headers" do
@@ -250,10 +250,10 @@ module MessageDequeuer
       end
     end
 
-    context "when the message does not have a x-postal-msgid header" do
+    context "when the message does not have a x-sender25-msgid header" do
       it "adds it" do
         processor.process
-        expect(message.reload.headers["x-postal-msgid"]).to match [match(/[a-zA-Z0-9]{12}/)]
+        expect(message.reload.headers["x-sender25-msgid"]).to match [match(/[a-zA-Z0-9]{12}/)]
       end
 
       it "adds a dkim header" do

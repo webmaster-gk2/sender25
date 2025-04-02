@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Worker
-  # The Postal Worker process is responsible for handling all background tasks. This includes processing of all
+  # The Sender25 Worker process is responsible for handling all background tasks. This includes processing of all
   # messages, webhooks and other administrative tasks. There are two main types of background work which is completed,
   # jobs and scheduled tasks.
   #
@@ -45,7 +45,7 @@ module Worker
     ].freeze
 
     # @param [Integer] thread_count The number of worker threads to run in this process
-    def initialize(thread_count: Postal::Config.worker.threads,
+    def initialize(thread_count: Sender25::Config.worker.threads,
                    work_sleep_time: 5,
                    task_sleep_time: 60)
       @thread_count = thread_count
@@ -111,7 +111,7 @@ module Worker
                   "than the db connection pool size (#{current_pool_size}+3), " \
                   "increasing connection pool size to #{desired_pool_size}"
 
-      Postal.change_database_connection_pool_size(desired_pool_size)
+      Sender25.change_database_connection_pool_size(desired_pool_size)
     end
 
     # Wait for all threads to complete
@@ -163,7 +163,7 @@ module Worker
 
             time = Benchmark.realtime { job.call }
 
-            observe_prometheus_histogram :postal_worker_job_runtime,
+            observe_prometheus_histogram :sender25_worker_job_runtime,
                                          time,
                                          labels: {
                                           thread: thread,
@@ -172,7 +172,7 @@ module Worker
 
             if job.work_completed?
               completed_work += 1
-              increment_prometheus_counter :postal_worker_job_executions,
+              increment_prometheus_counter :sender25_worker_job_executions,
                                            labels: {
                                               thread: thread,
                                               job: job_class.to_s.split("::").last
@@ -257,7 +257,7 @@ module Worker
             task.new(logger: logger).call
           end
 
-          observe_prometheus_histogram :postal_worker_task_runtime,
+          observe_prometheus_histogram :sender25_worker_task_runtime,
                                        time,
                                        labels: {
                                         task: task.to_s.split("::").last
@@ -274,7 +274,7 @@ module Worker
     #
     # @return [Klogger::Logger]
     def logger
-      Postal.logger
+      Sender25.logger
     end
 
     # Capture exceptions and handle this as appropriate.
@@ -288,28 +288,28 @@ module Worker
       e.backtrace.each { |line| logger.error line }
       Sentry.capture_exception(e) if defined?(Sentry)
 
-      increment_prometheus_counter :postal_worker_errors,
+      increment_prometheus_counter :sender25_worker_errors,
                                    labels: { error: e.class.to_s }
     end
 
     def setup_prometheus
-      register_prometheus_counter :postal_worker_job_executions,
+      register_prometheus_counter :sender25_worker_job_executions,
                                   docstring: "The number of jobs worked by a worker where work was completed",
                                   labels: [:thread, :job]
 
-      register_prometheus_histogram :postal_worker_job_runtime,
+      register_prometheus_histogram :sender25_worker_job_runtime,
                                     docstring: "The time taken to process jobs",
                                     labels: [:thread, :job]
 
-      register_prometheus_counter :postal_worker_errors,
+      register_prometheus_counter :sender25_worker_errors,
                                   docstring: "The number of errors encountered while processing jobs",
                                   labels: [:error]
 
-      register_prometheus_histogram :postal_worker_task_runtime,
+      register_prometheus_histogram :sender25_worker_task_runtime,
                                     docstring: "The time taken to process tasks",
                                     labels: [:task]
 
-      register_prometheus_histogram :postal_message_queue_latency,
+      register_prometheus_histogram :sender25_message_queue_latency,
                                     docstring: "The length of time between a message being queued and being dequeued"
     end
 

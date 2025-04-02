@@ -20,7 +20,7 @@ class MessagesController < ApplicationController
       end
     end
     @message.subject = "Test Message at #{Time.zone.now.to_fs(:long)}"
-    @message.plain_body = "This is a message to test the delivery of messages through Postal."
+    @message.plain_body = "This is a message to test the delivery of messages through Sender25."
   end
 
   def create
@@ -210,7 +210,7 @@ class MessagesController < ApplicationController
     @messages = @server.message_db.messages_with_pagination(params[:page], options)
   end
 
-  class TimeUndetermined < Postal::Error; end
+  class TimeUndetermined < Sender25::Error; end
 
   def get_time_from_string(string)
     begin

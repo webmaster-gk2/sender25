@@ -21,7 +21,7 @@
             = link_to "Close", '#', :class => 'button button--dark button--small', :data => {:remember => 'no'}
 
       .siteHeader__inside
-        .siteHeader__logo= link_to "Postal", root_path
+        .siteHeader__logo= link_to "Sender25", root_path
         %p.siteHeader__version The open source e-mail platform
         %ul.siteHeader__nav
           - if defined?(organization) && organization
@@ -40,7 +40,7 @@
           %li.siteHeader__navItem.siteHeader__navItem--user= current_user.name
           %li.siteHeader__navItem= link_to "My Settings", settings_path, :class => 'sideHeader__navItemLink'
           - if current_user.admin?
-            - if Postal.ip_pools?
+            - if Sender25.ip_pools?
               %li.siteHeader__navItem= link_to "IP Pools", ip_pools_path, :class => 'sideHeader__navItemLink'
             %li.siteHeader__navItem= link_to "Users", users_path, :class => 'sideHeader__navItemLink'
           %li.siteHeader__navItem= link_to "Logout", logout_path, :method => :delete, :class => 'sideHeader__navItemLink'
@@ -56,7 +56,7 @@
           %ul.footer__links
             %li.footer__name
               Powered by
-              #{link_to "Postal", "https://postalserver.io", target: '_blank'}
-              #{postal_version_string}
-            %li= link_to "Documentation", "https://docs.postalserver.io", target: '_blank'
-            %li= link_to "Ask for help", "https://discussions.postalserver.io", target: '_blank'
+              #{link_to "Sender25", "https://sender25server.io", target: '_blank'}
+              #{sender25_version_string}
+            %li= link_to "Documentation", "https://docs.sender25server.io", target: '_blank'
+            %li= link_to "Ask for help", "https://discussions.sender25server.io", target: '_blank'

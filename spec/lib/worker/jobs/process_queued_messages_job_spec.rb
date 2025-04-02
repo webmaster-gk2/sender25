@@ -6,7 +6,7 @@ module Worker
   module Jobs
 
     RSpec.describe ProcessQueuedMessagesJob do
-      subject(:job) { described_class.new(logger: Postal.logger) }
+      subject(:job) { described_class.new(logger: Sender25.logger) }
 
       before do
         allow(MessageDequeuer).to receive(:process)
@@ -36,7 +36,7 @@ module Worker
             job.call
             expect(MessageDequeuer).to have_received(:process).with(queued_message, logger: kind_of(Klogger::Logger))
             expect(queued_message.reload.locked?).to be true
-            expect(queued_message.locked_by).to match(/\A#{Postal.locker_name} [a-f0-9]{16}\z/)
+            expect(queued_message.locked_by).to match(/\A#{Sender25.locker_name} [a-f0-9]{16}\z/)
             expect(queued_message.locked_at).to be_within(1.second).of(Time.current)
           end
         end
@@ -47,7 +47,7 @@ module Worker
             job.call
             expect(MessageDequeuer).to have_received(:process).with(queued_message, logger: kind_of(Klogger::Logger))
             expect(queued_message.reload.locked?).to be true
-            expect(queued_message.locked_by).to match(/\A#{Postal.locker_name} [a-f0-9]{16}\z/)
+            expect(queued_message.locked_by).to match(/\A#{Sender25.locker_name} [a-f0-9]{16}\z/)
             expect(queued_message.locked_at).to be_within(1.second).of(Time.current)
           end
         end
@@ -87,7 +87,7 @@ module Worker
             job.call
             expect(MessageDequeuer).to have_received(:process).with(queued_message, logger: kind_of(Klogger::Logger))
             expect(queued_message.reload.locked?).to be true
-            expect(queued_message.locked_by).to match(/\A#{Postal.locker_name} [a-f0-9]{16}\z/)
+            expect(queued_message.locked_by).to match(/\A#{Sender25.locker_name} [a-f0-9]{16}\z/)
             expect(queued_message.locked_at).to be_within(1.second).of(Time.current)
           end
         end

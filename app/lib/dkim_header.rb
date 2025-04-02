@@ -8,9 +8,9 @@ class DKIMHeader
       @dkim_key = domain.dkim_key
       @dkim_identifier = domain.dkim_identifier
     else
-      @domain_name = Postal::Config.dns.return_path_domain
-      @dkim_key = Postal.signer.private_key
-      @dkim_identifier = Postal::Config.dns.dkim_identifier
+      @domain_name = Sender25::Config.dns.return_path_domain
+      @dkim_key = Sender25.signer.private_key
+      @dkim_identifier = Sender25::Config.dns.dkim_identifier
     end
     @domain = domain
     @message = message

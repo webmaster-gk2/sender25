@@ -21,9 +21,9 @@ RSpec.describe User do
     let(:issuer) { "https://identity.example.com" }
 
     before do
-      allow(Postal::Config.oidc).to receive(:enabled?).and_return(true)
-      allow(Postal::Config.oidc).to receive(:issuer).and_return(issuer)
-      allow(Postal::Config.oidc).to receive(:email_address_field).and_return("email")
+      allow(Sender25::Config.oidc).to receive(:enabled?).and_return(true)
+      allow(Sender25::Config.oidc).to receive(:issuer).and_return(issuer)
+      allow(Sender25::Config.oidc).to receive(:email_address_field).and_return("email")
     end
 
     let(:uid) { "abcdef" }

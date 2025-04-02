@@ -1,12 +1,12 @@
 version: 2
 
-postal:
-  # The hostname that the Postal web interface runs on
-  web_hostname: postal.example.com
-  # The HTTP protocol to use for the Postal web interface
+sender25:
+  # The hostname that the Sender25 web interface runs on
+  web_hostname: sender25.example.com
+  # The HTTP protocol to use for the Sender25 web interface
   web_protocol: https
-  # The hostname that the Postal SMTP server runs on
-  smtp_hostname: postal.example.com
+  # The hostname that the Sender25 SMTP server runs on
+  smtp_hostname: sender25.example.com
   # Should IP pools be enabled for this installation?
   use_ip_pools: false
   # The maximum number of delivery attempts
@@ -27,7 +27,7 @@ postal:
   signing_key_path: $config-file-root/signing.key
   # An array of SMTP relays in the format of smtp://host:port
   smtp_relays: []
-  # An array of IP addresses to trust for proxying requests to Postal (in addition to localhost addresses)
+  # An array of IP addresses to trust for proxying requests to Sender25 (in addition to localhost addresses)
   trusted_proxies: []
   # The number of days after which to consider a lock as stale. Messages with stale locks will be removed and not retried.
   queued_message_lock_stale_days: 1
@@ -56,11 +56,11 @@ main_db:
   # The MariaDB port to connect to
   port: 3306
   # The MariaDB username
-  username: postal
+  username: sender25
   # The MariaDB password
   password: 
   # The MariaDB database name
-  database: postal
+  database: sender25
   # The maximum size of the MariaDB connection pool
   pool_size: 5
   # The encoding to use when connecting to the MariaDB database
@@ -72,20 +72,20 @@ message_db:
   # The MariaDB port to connect to
   port: 3306
   # The MariaDB username
-  username: postal
+  username: sender25
   # The MariaDB password
   password: 
   # The encoding to use when connecting to the MariaDB database
   encoding: utf8mb4
   # The MariaDB prefix to add to database names
-  database_name_prefix: postal
+  database_name_prefix: sender25
 
 logging:
   # Enable the default Rails logger
   rails_log_enabled: false
   # A DSN which should be used to report exceptions to Sentry
   sentry_dsn: 
-  # Enable the Postal logger to log to STDOUT
+  # Enable the Sender25 logger to log to STDOUT
   enabled: true
   # Enable highlighting of log lines
   highlighting_enabled: false
@@ -96,7 +96,7 @@ gelf:
   # GELF port to send logs to
   port: 12201
   # The facility name to add to all log entries sent to GELF
-  facility: postal
+  facility: sender25
 
 smtp_server:
   # The default port the SMTP server should listen on unless overriden by the PORT environment variable
@@ -129,23 +129,23 @@ smtp_server:
 dns:
   # The names of the default MX records
   mx_records:
-    - mx1.postal.example.com
-    - mx2.postal.example.com
+    - mx1.sender25.example.com
+    - mx2.sender25.example.com
   # The location of the SPF record
-  spf_include: spf.postal.example.com
+  spf_include: spf.sender25.example.com
   # The return path hostname
-  return_path_domain: rp.postal.example.com
+  return_path_domain: rp.sender25.example.com
   # The domain to use for hosting route-specific addresses
-  route_domain: routes.postal.example.com
+  route_domain: routes.sender25.example.com
   # The CNAME which tracking domains should be pointed to
-  track_domain: track.postal.example.com
+  track_domain: track.sender25.example.com
   # The hostname to use in HELO/EHLO when connecting to external SMTP servers
   helo_hostname: 
   # The identifier to use for DKIM keys in DNS records
-  dkim_identifier: postal
+  dkim_identifier: sender25
   # The prefix to add before TXT record verification string
-  domain_verify_prefix: postal-verification
-  # The domain to use on external domains which points to the Postal return path domain
+  domain_verify_prefix: sender25-verification
+  # The domain to use on external domains which points to the Sender25 return path domain
   custom_return_path_prefix: psrp
   # The timeout to wait for DNS resolution
   timeout: 5
@@ -169,10 +169,10 @@ smtp:
   enable_starttls_auto: true
   # When using TLS, you can set how OpenSSL checks the certificate. Use 'none' for no certificate checking
   openssl_verify_mode: peer
-  # The name to use as the from name outgoing emails from Postal
-  from_name: Postal
-  # The e-mail to use as the from address outgoing emails from Postal
-  from_address: postal@example.com
+  # The name to use as the from name outgoing emails from Sender25
+  from_name: Sender25
+  # The e-mail to use as the from address outgoing emails from Sender25
+  from_address: sender25@example.com
 
 rails:
   # The Rails environment to run the application in

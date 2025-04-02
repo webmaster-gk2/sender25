@@ -1,6 +1,6 @@
 domain: adamtest.viaduct.io
 time: 1626973299
-dkim_identifier: postal-hg3YOm
+dkim_identifier: sender25-hg3YOm
 private_key: |
   -----BEGIN RSA PRIVATE KEY-----
   MIICWwIBAAKBgQDVebmUOjOp4WhVFdwXiHE0sIN0/pxG1lXka8b7wCcKXo7c0Bcp
@@ -21,17 +21,17 @@ headers: date:from:to:message-id:subject:mime-version:content-type:content-trans
 bh: mvuu3b9qEfdaZCSaVxLvRSqKbMB5YN4qxRCRw5FtvuE=
 b: UZgYjsed5ngc9+U/80FMsHIWLTaxj/OBc5r1l9sKbOIz0rmdRnp+X/YCFq16/AY8PWsrJh+/FgIs/zR9hWn+F2iz7dSfvnTE70zKy1q+JIyNh5cw1HegnIgZqG5S6IdliiwaiCFlxMbya790z//jUh5pJdOcm2QuA+fDOGdfU3k=
 ---
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=adamtest.viaduct.io; s=postal-hg3YOm; t=1626973299; bh=mvuu3b9qEfdaZCSaVxLvRSqKbMB5YN4qxRCRw5FtvuE=; h=date:from:to:message-id:subject:mime-version:content-type:content-transfer-encoding; b=UZgYjsed5ngc9+U/80FMsHIWLTaxj/OBc5r1l9sKbOIz0rmdRnp+X/YCFq16/AY8PWsrJh+/FgIs/zR9hWn+F2iz7dSfvnTE70zKy1q+JIyNh5cw1HegnIgZqG5S6IdliiwaiCFlxMbya790z//jUh5pJdOcm2QuA+fDOGdfU3k=
-X-Postal-MsgID: mPVbUwFRWZcU
-Received: from web-ui (10.210.10.54 [10.210.10.54]) by Postal with HTTP; Thu, 22 Jul 2021 17:01:39 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=adamtest.viaduct.io; s=sender25-hg3YOm; t=1626973299; bh=mvuu3b9qEfdaZCSaVxLvRSqKbMB5YN4qxRCRw5FtvuE=; h=date:from:to:message-id:subject:mime-version:content-type:content-transfer-encoding; b=UZgYjsed5ngc9+U/80FMsHIWLTaxj/OBc5r1l9sKbOIz0rmdRnp+X/YCFq16/AY8PWsrJh+/FgIs/zR9hWn+F2iz7dSfvnTE70zKy1q+JIyNh5cw1HegnIgZqG5S6IdliiwaiCFlxMbya790z//jUh5pJdOcm2QuA+fDOGdfU3k=
+X-Sender25-MsgID: mPVbUwFRWZcU
+Received: from web-ui (10.210.10.54 [10.210.10.54]) by Sender25 with HTTP; Thu, 22 Jul 2021 17:01:39 +0000
 Date: Thu, 22 Jul 2021 18:01:39 +0100
 From: test@adamtest.viaduct.io
 To: JfkFM0Sy6bTz1N@dkimvalidator.com
-Message-ID: <d996f20d-c0c5-46d5-ba22-3bac0d859142@rp.adampostal.viaduct.io>
+Message-ID: <d996f20d-c0c5-46d5-ba22-3bac0d859142@rp.adamsender25.viaduct.io>
 Subject: Test Message at July 22, 2021 13:01
 Mime-Version: 1.0
 Content-Type: text/plain;
  charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-This is a message to test the delivery of messages through Postal.
+This is a message to test the delivery of messages through Sender25.

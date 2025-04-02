@@ -104,7 +104,7 @@ class Domain < ApplicationRecord
   end
 
   def spf_record
-    "v=spf1 a mx include:#{Postal::Config.dns.spf_include} ~all"
+    "v=spf1 a mx include:#{Sender25::Config.dns.spf_include} ~all"
   end
 
   def dkim_record
@@ -122,7 +122,7 @@ class Domain < ApplicationRecord
 
   def dkim_identifier
     # Return just the configured identifier
-    Postal::Config.dns.dkim_identifier
+    Sender25::Config.dns.dkim_identifier
   end
 
   def dkim_record_name
@@ -133,7 +133,7 @@ class Domain < ApplicationRecord
   end
 
   def return_path_domain
-    "#{Postal::Config.dns.custom_return_path_prefix}.#{name}"
+    "#{Sender25::Config.dns.custom_return_path_prefix}.#{name}"
   end
 
   # Returns a DNSResolver instance that can be used to perform DNS lookups needed for
@@ -141,13 +141,13 @@ class Domain < ApplicationRecord
   #
   # @return [DNSResolver]
   def resolver
-    return DNSResolver.local if Postal::Config.postal.use_local_ns_for_domain_verification?
+    return DNSResolver.local if Sender25::Config.sender25.use_local_ns_for_domain_verification?
 
     @resolver ||= DNSResolver.for_domain(name)
   end
 
   def dns_verification_string
-    "#{Postal::Config.dns.domain_verify_prefix} #{verification_token}"
+    "#{Sender25::Config.dns.domain_verify_prefix} #{verification_token}"
   end
 
   def verify_with_dns

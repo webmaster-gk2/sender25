@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-config = Postal::Config.oidc
+config = Sender25::Config.oidc
 if config.enabled?
   client_options = { identifier: config.identifier, secret: config.secret }
 
-  client_options[:redirect_uri] = "#{Postal::Config.postal.web_protocol}://#{Postal::Config.postal.web_hostname}/auth/oidc/callback"
+  client_options[:redirect_uri] = "#{Sender25::Config.sender25.web_protocol}://#{Sender25::Config.sender25.web_hostname}/auth/oidc/callback"
 
   unless config.discovery?
     client_options[:authorization_endpoint] = config.authorization_endpoint
