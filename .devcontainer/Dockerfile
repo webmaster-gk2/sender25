@@ -21,4 +21,4 @@ RUN gem install bundler
 EXPOSE 3000
 
 # Comando padrão: iniciar o servidor Rails
-CMD ["sh", "-c", "(bundle check || bundle install) && ./postal web-server"]
+CMD ["sh", "-c", "(bundle check || bundle install) && ./sender25 web-server"]

@@ -1,6 +1,6 @@
 domain: adamtest.viaduct.io
 time: 1627490307
-dkim_identifier: postal-R7w1LN
+dkim_identifier: sender25-R7w1LN
 private_key: |
   -----BEGIN RSA PRIVATE KEY-----
   MIICWwIBAAKBgQCwc2EEPeNKe1jS4cQ0GQXeRkm8vsDsD3UeR9EUdxLuvbzJ2VvZ

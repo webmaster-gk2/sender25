@@ -18,7 +18,7 @@ mail = Mail.new
 mail.to = to
 mail.from = from
 mail.subject = "A test email from #{Time.now}"
-mail["X-Postal-Tag"] = "send-html-email-script"
+mail["X-Sender25-Tag"] = "send-html-email-script"
 mail.text_part = Mail::Part.new do
   body <<~BODY
     Hello there.
@@ -27,7 +27,7 @@ mail.text_part = Mail::Part.new do
 
     Some other characters: őúéáűí
 
-    There is a link here through... https://postalserver.io/test-plain-text-link?foo=bar&baz=qux
+    There is a link here through... https://sender25server.io/test-plain-text-link?foo=bar&baz=qux
   BODY
 end
 mail.html_part = Mail::Part.new do
@@ -36,7 +36,7 @@ mail.html_part = Mail::Part.new do
     <p>Hello there</p>
     <p>This is an example email. It doesn't do all that much.</p>
     <p>Some other characters: őúéáűí</p>
-    <p>There is a <a href='https://postalserver.io/test-plain-text-link?foo=bar&amp;baz=qux'>link here</a> though...</p>
+    <p>There is a <a href='https://sender25server.io/test-plain-text-link?foo=bar&amp;baz=qux'>link here</a> though...</p>
   BODY
 end
 

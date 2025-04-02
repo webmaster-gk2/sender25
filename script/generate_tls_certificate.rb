@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require File.expand_path("../lib/postal/config", __dir__)
+require File.expand_path("../lib/sender25/config", __dir__)
 require "openssl"
 
-key_path = Postal::Config.smtp_server.tls_private_key_path
-cert_path = Postal::Config.smtp_server.tls_certificate_path
+key_path = Sender25::Config.smtp_server.tls_private_key_path
+cert_path = Sender25::Config.smtp_server.tls_certificate_path
 
 unless File.exist?(key_path)
   key = OpenSSL::PKey::RSA.new(2048).to_s

@@ -95,7 +95,7 @@ module LegacyAPI
       end
 
       render_success message_hash
-    rescue Postal::MessageDB::Message::NotFound
+    rescue Sender25::MessageDB::Message::NotFound
       render_error "MessageNotFound",
                    message: "No message found matching provided ID",
                    id: api_params["id"]
@@ -130,7 +130,7 @@ module LegacyAPI
         }
       end
       render_success deliveries
-    rescue Postal::MessageDB::Message::NotFound
+    rescue Sender25::MessageDB::Message::NotFound
       render_error "MessageNotFound",
                    message: "No message found matching provided ID",
                    id: api_params["id"]

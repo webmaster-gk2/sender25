@@ -6,7 +6,7 @@ module Worker
   module Jobs
 
     RSpec.describe ProcessWebhookRequestsJob do
-      subject(:job) { described_class.new(logger: Postal.logger) }
+      subject(:job) { described_class.new(logger: Sender25.logger) }
 
       let(:mocked_service) { double("Service") }
 

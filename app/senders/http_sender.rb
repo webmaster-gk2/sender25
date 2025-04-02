@@ -25,7 +25,7 @@ class HTTPSender < BaseSender
     end
 
     log "Sending request to #{@endpoint.url}"
-    response = Postal::HTTP.post(@endpoint.url, request_options)
+    response = Sender25::HTTP.post(@endpoint.url, request_options)
     result.secure = !!response[:secure] # rubocop:disable Style/DoubleNegation
     result.details = "Received a #{response[:code]} from #{@endpoint.url}"
     log "  -> Received: #{response[:code]}"
@@ -60,7 +60,7 @@ class HTTPSender < BaseSender
   private
 
   def log(text)
-    Postal.logger.info text, id: @log_id, component: "http-sender"
+    Sender25.logger.info text, id: @log_id, component: "http-sender"
   end
 
   def parameters(message, options = {})

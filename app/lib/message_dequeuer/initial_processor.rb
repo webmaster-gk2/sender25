@@ -34,7 +34,7 @@ module MessageDequeuer
     def increment_dequeue_metric
       time_in_queue = Time.now.to_f - @queued_message.created_at.to_f
       log "queue latency is #{time_in_queue}s"
-      observe_prometheus_histogram :postal_message_queue_latency,
+      observe_prometheus_histogram :sender25_message_queue_latency,
                                    time_in_queue
     end
 
@@ -55,7 +55,7 @@ module MessageDequeuer
     end
 
     def find_other_messages_for_batch
-      return unless Postal::Config.postal.batch_queued_messages?
+      return unless Sender25::Config.sender25.batch_queued_messages?
 
       @other_messages = @queued_message.batchable_messages(100)
       log "found #{@other_messages.size} associated messages to process at the same time", batch_key: @queued_message.batch_key

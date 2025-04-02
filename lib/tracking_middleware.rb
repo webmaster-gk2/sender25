@@ -40,7 +40,7 @@ class TrackingMiddleware
     begin
       message = message_db.message(token: message_token)
       message.create_load(request)
-    rescue Postal::MessageDB::Message::NotFound
+    rescue Sender25::MessageDB::Message::NotFound
       # This message has been removed, we'll just continue to serve the image
     rescue StandardError => e
       # Somethign else went wrong. We don't want to stop the image loading though because
@@ -56,7 +56,7 @@ class TrackingMiddleware
       headers["Content-Length"] = TRACKING_PIXEL.bytesize.to_s
       [200, headers, [TRACKING_PIXEL]]
     when /\Ahttps?:\/\//
-      response = Postal::HTTP.get(source_image, timeout: 3)
+      response = Sender25::HTTP.get(source_image, timeout: 3)
       return [404, {}, ["Not found"]] unless response[:code] == 200
 
       headers = {}
@@ -103,7 +103,7 @@ class TrackingMiddleware
           ip_address: request.ip,
           user_agent: request.user_agent
         })
-      rescue Postal::MessageDB::Message::NotFound
+      rescue Sender25::MessageDB::Message::NotFound
         # If we can't find the message that this link is associated with, we'll just ignore it
         # and not trigger any webhooks.
       end

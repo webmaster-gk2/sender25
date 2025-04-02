@@ -49,7 +49,7 @@ module MessageDequeuer
 
     def add_tag
       return if queued_message.message.tag
-      return unless tag = queued_message.message.headers["x-postal-tag"]
+      return unless tag = queued_message.message.headers["x-sender25-tag"]
 
       log "added tag: #{tag.last}"
       queued_message.message.update(tag: tag.last)

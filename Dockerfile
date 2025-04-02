@@ -20,27 +20,27 @@ RUN apt-get update && \
 
 RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/ruby
 
-# Configure 'postal' to work everywhere (when the binary exists
+# Configure 'sender25' to work everywhere (when the binary exists
 # later in this process)
-ENV PATH="/opt/postal/app/bin:${PATH}"
+ENV PATH="/opt/sender25/app/bin:${PATH}"
 
 # Setup an application
-RUN useradd -r -d /opt/postal -m -s /bin/bash -u 999 postal
-USER postal
-RUN mkdir -p /opt/postal/app /opt/postal/config
-WORKDIR /opt/postal/app
+RUN useradd -r -d /opt/sender25 -m -s /bin/bash -u 999 sender25
+USER sender25
+RUN mkdir -p /opt/sender25/app /opt/sender25/config
+WORKDIR /opt/sender25/app
 
 # Install bundler
 RUN gem install bundler -v 2.5.6 --no-doc
 
 # Install the latest and active gem dependencies and re-run
 # the appropriate commands to handle installs.
-COPY --chown=postal Gemfile Gemfile.lock ./
+COPY --chown=sender25 Gemfile Gemfile.lock ./
 RUN bundle install
 
 # Copy the application (and set permissions)
 COPY ./docker/wait-for.sh /docker-entrypoint.sh
-COPY --chown=postal . .
+COPY --chown=sender25 . .
 
 # Export the version
 ARG VERSION
@@ -49,11 +49,11 @@ RUN if [ "$VERSION" != "" ]; then echo $VERSION > VERSION; fi \
   && if [ "$BRANCH" != "" ]; then echo $BRANCH > BRANCH; fi
 
 # Set paths for when running in a container
-ENV POSTAL_CONFIG_FILE_PATH=/config/postal.yml
+ENV POSTAL_CONFIG_FILE_PATH=/config/sender25.yml
 
 # Set the CMD
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
-CMD ["postal"]
+CMD ["sender25"]
 
 # ci target - use --target=ci to skip asset compilation
 FROM base AS ci
@@ -62,4 +62,4 @@ FROM base AS ci
 FROM base AS full
 
 RUN RAILS_GROUPS=assets bundle exec rake assets:precompile
-RUN touch /opt/postal/app/public/assets/.prebuilt
+RUN touch /opt/sender25/app/public/assets/.prebuilt

@@ -3,8 +3,8 @@
 class ReceivedHeader
 
   OUR_HOSTNAMES = {
-    smtp: Postal::Config.postal.smtp_hostname,
-    http: Postal::Config.postal.web_hostname
+    smtp: Sender25::Config.sender25.smtp_hostname,
+    http: Sender25::Config.sender25.web_hostname
   }.freeze
 
   class << self

@@ -1,6 +1,6 @@
 # Setup de Desenvolvimento – Sender25
 
-Este documento descreve o processo de configuração do ambiente de desenvolvimento local para o Sender25 (baseado no Postal 3.3.4) utilizando DevContainer (VS Code + Docker) e Docker Compose. Siga os passos abaixo para que todos os membros da equipe possam configurar o ambiente de forma idêntica e padronizada.
+Este documento descreve o processo de configuração do ambiente de desenvolvimento local para o Sender25 (baseado no Sender25 3.3.4) utilizando DevContainer (VS Code + Docker) e Docker Compose. Siga os passos abaixo para que todos os membros da equipe possam configurar o ambiente de forma idêntica e padronizada.
 
 ---
 
@@ -50,9 +50,9 @@ Este documento descreve o processo de configuração do ambiente de desenvolvime
     - **rabbitmq:** Serviço de filas RabbitMQ (se necessário).
         
 - **config/database.yml**  
-    As configurações de conexão com o banco são carregadas via variáveis definidas no `config/postal.yml`.
+    As configurações de conexão com o banco são carregadas via variáveis definidas no `config/sender25.yml`.
     
-- **config/postal.yml**  
+- **config/sender25.yml**  
     Arquivo com as configurações do Sender25, que inclui os dados de conexão do banco de dados.  
     **Atenção:** Esse arquivo deve estar no `.gitignore` para proteger informações sensíveis.  
     Exemplo mínimo para desenvolvimento:
@@ -133,18 +133,18 @@ Após a abertura do container, o comando definido no `postCreateCommand` (no `de
 Após essa etapa, **você deve rodar os seguintes comandos no terminal dentro do container**:
 
 ```bash
-bin/postal initialize
-bin/postal update
-bin/postal web-server
+bin/sender25 initialize
+bin/sender25 update
+bin/sender25 web-server
 ```
 
 #### O que cada comando faz:
 
-- `bin/postal initialize`: Cria os bancos de dados e aplica as configurações iniciais.
+- `bin/sender25 initialize`: Cria os bancos de dados e aplica as configurações iniciais.
     
-- `bin/postal update`: Aplica atualizações de schema (caso existam).
+- `bin/sender25 update`: Aplica atualizações de schema (caso existam).
     
-- `bin/postal web-server`: Inicia o servidor da aplicação web usando o `puma` conforme configurado.
+- `bin/sender25 web-server`: Inicia o servidor da aplicação web usando o `puma` conforme configurado.
     
 
 > Esses comandos garantem que o Sender25 estará com o banco configurado e a aplicação rodando corretamente no modo desenvolvimento, dentro do DevContainer.
@@ -162,7 +162,7 @@ Para garantir que o ambiente de desenvolvimento funcione corretamente e oferecer
 | **Ruby**                   | Suporte a sintaxe, navegação e funcionalidades básicas de Ruby.                   |
 | **Solargraph**             | Autocompletar, linting e inteligência para projetos Ruby. (_castwide.solargraph_) |
 | **VSCode Ruby Debugger**   | Suporte para depuração (debug) de código Ruby/Rails.                              |
-| **YAML**                   | Suporte avançado para arquivos `.yml`, como `postal.yml`.                         |
+| **YAML**                   | Suporte avançado para arquivos `.yml`, como `sender25.yml`.                         |
 | **Prettier**               | Formatador de código para arquivos JavaScript, JSON, YAML etc.                    |
 | **Ruby on Rails Snippets** | Trechos de código prontos para acelerar o desenvolvimento com Rails.              |
 | **RSpec Snippets**         | Snippets para testes automatizados com RSpec.                                     |
@@ -194,7 +194,7 @@ Essa configuração garante que o Solargraph utilize as gems corretamente via Bu
 
 - **Versione** os arquivos de configuração do DevContainer (`.devcontainer/`) e o `docker-compose.yml` no repositório.
     
-- **Mantenha** o `config/postal.yml` fora do versionamento (adicione-o ao `.gitignore`)
+- **Mantenha** o `config/sender25.yml` fora do versionamento (adicione-o ao `.gitignore`)
     
 - Atualize este documento conforme houver alterações no setup para manter toda a equipe informada.
     

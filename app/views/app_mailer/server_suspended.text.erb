@@ -1,6 +1,6 @@
 Hello,
 
-We're writing to inform you that, unfortunately, we have had to suspend one of your mail servers on Postal.
+We're writing to inform you that, unfortunately, we have had to suspend one of your mail servers on Sender25.
 
 Organization: <%= @server.organization.name %>
 Server: <%= @server.name %>
@@ -8,5 +8,5 @@ Reason: <%= @server.actual_suspension_reason %>
 
 Thanks,
 
-<%= Postal::Config.smtp.from_name %>
-<%= Postal::Config.smtp.from_address %>
+<%= Sender25::Config.smtp.from_name %>
+<%= Sender25::Config.smtp.from_address %>

@@ -53,8 +53,8 @@ module SMTPClient
     # @return [Net::SMTP]
     def start_smtp_session(source_ip_address: nil, allow_ssl: true)
       @smtp_client = Net::SMTP.new(@ip_address, @server.port)
-      @smtp_client.open_timeout = Postal::Config.smtp_client.open_timeout
-      @smtp_client.read_timeout = Postal::Config.smtp_client.read_timeout
+      @smtp_client.open_timeout = Sender25::Config.smtp_client.open_timeout
+      @smtp_client.read_timeout = Sender25::Config.smtp_client.read_timeout
       @smtp_client.tls_hostname = @server.hostname
 
       if source_ip_address
@@ -140,8 +140,8 @@ module SMTPClient
       #
       # @return [String]
       def default_helo_hostname
-        Postal::Config.dns.helo_hostname ||
-          Postal::Config.postal.smtp_hostname ||
+        Sender25::Config.dns.helo_hostname ||
+          Sender25::Config.sender25.smtp_hostname ||
           "localhost"
       end
 

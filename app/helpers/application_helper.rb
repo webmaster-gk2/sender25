@@ -100,10 +100,10 @@ module ApplicationHelper
     end.html_safe
   end
 
-  def postal_version_string
-    string = Postal.version
-    string += " (#{Postal.branch})" if Postal.branch &&
-                                       Postal.branch != "main"
+  def sender25_version_string
+    string = Sender25.version
+    string += " (#{Sender25.branch})" if Sender25.branch &&
+                                       Sender25.branch != "main"
     string
   end
 

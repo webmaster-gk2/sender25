@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "postal/config"
+require "sender25/config"
 
-config = Postal::Config.smtp
+config = Sender25::Config.smtp
 
 ActionMailer::Base.delivery_method = :smtp
 ActionMailer::Base.smtp_settings = {
