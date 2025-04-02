@@ -53,6 +53,21 @@ $ ->
     $(element, $link.parent()).toggle()
     false
 
+  $(document).on 'click', '.js-toggle-dkim-form', ->
+    $form = $('#dkim-key-form')
+    $showButton = $('.buttonSet:not(:has(.button--neutral)) .js-toggle-dkim-form')
+    $hideButton = $('.buttonSet:has(.button--neutral) .js-toggle-dkim-form')
+    
+    if $form.hasClass('is-hidden')
+      $showButton.hide()
+      $form.removeClass('is-hidden').hide().slideDown(300)
+    else
+      $form.slideUp(300, ->
+        $(this).addClass('is-hidden')
+        $showButton.show()
+      )
+    false
+
   toggleCredentialInputs = (type)->
     $('[data-credential-key-type]').hide()
     $('[data-credential-key-type] input').attr('disabled', true)
