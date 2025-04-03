@@ -1,0 +1,14 @@
+# Update this to match the hostname you wish to use for accessing the
+# Sender25 web interface.
+sender25.yourdomain.com {
+  reverse_proxy 127.0.0.1:5000
+}
+
+# If you use open/click tracking you may need to add additional hosts
+# to this file using the format below.
+#
+# click.yourdomain.com {
+#   reverse_proxy 127.0.0.1:5000 {
+#     header_up X-Sender25-Track-Host "1"
+#   }
+# }

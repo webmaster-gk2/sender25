@@ -1,0 +1,231 @@
+#!/bin/bash
+
+set -e
+
+ORIGINAL_SCRIPT="$( realpath "${BASH_SOURCE[0]}" )"
+ROOT_DIR=$( cd "$( dirname "${ORIGINAL_SCRIPT}" )/.." && pwd )
+DEV_MODE="false"
+
+if command -v gsed &> /dev/null
+then
+    SED="gsed"
+else
+    SED="sed"
+fi
+
+run() {
+    if [ $DEV_MODE == "true" ]
+    then
+        echo "run: $@"
+    else
+        eval $@
+    fi
+}
+
+ORIGINAL_ARGS="${@:2}"
+POSITIONAL_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --dev)
+            DEV_MODE="true"
+            shift
+        ;;
+        *)
+            POSITIONAL_ARGS+=("$1") 
+            shift
+        ;;
+    esac
+done
+
+set -- "${POSITIONAL_ARGS[@]}"
+
+call-hook() {
+    if [ -f "hooks/$1" ]
+    then
+        echo "running hook: $1"
+        bash hooks/$1
+    fi
+}
+
+run-docker-compose() {
+    if [ ! -f "docker-compose.yml" ]; then
+        echo 'No docker-compose file available. Generating...'
+        cp templates/docker-compose.yml docker-compose.yml
+    fi
+
+    if command -v docker-compose &> /dev/null
+    then
+        run "docker-compose -p sender25 $@"
+    else
+        run "docker compose -p sender25 $@"
+    fi
+}
+
+# Enter the root directory
+cd $ROOT_DIR
+
+# Run the right command
+case "$1" in
+    start)
+        call-hook "pre-start"
+        run-docker-compose "up -d ${@:2}"
+        call-hook "post-start"
+        ;;
+
+    stop)
+        call-hook "pre-stop"
+        run-docker-compose "down"
+        call-hook "post-stop"
+        ;;
+
+    restart)
+        call-hook "pre-restart"
+        run-docker-compose "restart"
+        call-hook "post-restart"
+        ;;
+
+    status)
+        run-docker-compose "ps"
+        ;;
+
+    logs)
+        run-docker-compose "logs ${@:2}"
+        ;;
+
+    dc)
+        run-docker-compose "${@:2}"
+        ;;
+
+    bash)
+        if [ "$2" == "" ]; then
+            echo 'must provide service name'
+            exit 1
+        fi
+
+        run-docker-compose "exec $2 bash"
+        ;;
+
+    initialize)
+        call-hook "pre-initialize"
+        run-docker-compose "run --rm runner sender25 initialize"
+        call-hook "post-initialize"
+        ;;
+
+    build)
+        echo "Building local sender25 image..."
+        run-docker-compose "build"
+        ;;
+
+    upgrade)
+        echo "Upgrading sender25..."
+        call-hook "pre-upgrade"
+        run-docker-compose "build"
+        call-hook "pre-upgrade-db"
+        run-docker-compose "run --rm runner sender25 upgrade"
+        call-hook "post-upgrade-db"
+        run-docker-compose "up -d --remove-orphans"
+        call-hook "post-upgrade"
+        ;;
+
+    upgrade-db)
+        call-hook "pre-upgrade-db"
+        run-docker-compose "run --rm runner sender25 upgrade"
+        call-hook "post-upgrade-db"
+        ;;
+
+    console)
+        run-docker-compose "run --rm runner sender25 console"
+        ;;
+
+    version)
+        run-docker-compose "run --rm runner sender25 version"
+        ;;
+
+    make-user)
+        run-docker-compose "run --rm runner sender25 make-user"
+        ;;
+
+    default-dkim-record)
+        run-docker-compose "run --rm runner sender25 default-dkim-record"
+        ;;
+
+    test-app-smtp)
+        run-docker-compose "run --rm runner sender25 test-app-smtp $2"
+        ;;
+
+    bootstrap)
+        hostname=$2
+        output_path=$3
+
+        call-hook "pre-bootstrap"
+
+        if [ "$output_path" == "" ]; then
+            output_path=/opt/sender25/config
+        fi
+
+        if [ "$hostname" == "" ]; then
+            echo 'hostname is missing.'
+            echo
+            echo 'usage: ./bin/sender25 bootstrap sender25.mydomain.com [path/to/config]'
+            exit 1
+        fi
+
+        mkdir -p $output_path
+
+        if [ ! -f $output_path/sender25.yml ]; then
+            echo "=> Creating $output_path/sender25.yml"
+            cp examples/sender25.yml $output_path/sender25.yml
+            rails_secret_key=`openssl rand -hex 128 | tr -d '\n'`
+            $SED -i "s/{{secretkey}}/$rails_secret_key/" $output_path/sender25.yml
+            $SED -i "s/sender25.yourdomain.com/$hostname/" $output_path/sender25.yml
+        fi
+
+        if [ ! -f $output_path/Caddyfile ]; then
+            echo "=> Creating $output_path/Caddyfile"
+            cp examples/Caddyfile $output_path/Caddyfile
+            $SED -i "s/sender25.yourdomain.com/$hostname/" $output_path/Caddyfile
+        fi
+
+        if [ ! -f $output_path/signing.key ]; then
+            echo '=> Creating signing private key'
+            openssl genrsa -out $output_path/signing.key 1024
+            chmod 644 $output_path/signing.key
+        fi
+
+        call-hook "post-bootstrap"
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart|status|logs|dc|bash|initialize|build|upgrade|upgrade-db|console|version|make-user|default-dkim-record|test-app-smtp|bootstrap}"
+        echo
+        echo "Running sender25:"
+        echo
+        echo -e " * \e[35mstart\e[0m - start Sender25"
+        echo -e " * \e[35mstop\e[0m - stop Sender25"
+        echo -e " * \e[35mrestart\e[0m - restart Sender25"
+        echo -e " * \e[35mstatus\e[0m - view current process status"
+        echo -e " * \e[35mlogs [service]\e[0m - view logs from services"
+        echo
+        echo "Setup tools:"
+        echo
+        echo -e " * \e[32minitialize\e[0m - create and load the DB schema"
+        echo -e " * \e[32mbuild\e[0m - build the local sender25 image"
+        echo -e " * \e[32mbootstrap hostname [path]\e[0m - create initial configuration"
+        echo -e " * \e[32mupgrade\e[0m - upgrade sender25 and database"
+        echo -e " * \e[32mupgrade-db\e[0m - upgrade database schema only"
+        echo
+        echo "Administration tools:"
+        echo
+        echo -e " * \e[34mconsole\e[0m - open an interactive console"
+        echo -e " * \e[34mversion\e[0m - show the current sender25 version"
+        echo -e " * \e[34mmake-user\e[0m - create a new global admin user"
+        echo -e " * \e[34mdefault-dkim-record\e[0m - display the default DKIM record"
+        echo -e " * \e[34mtest-app-smtp\e[0m - send a test message through sender25"
+        echo
+        echo "Other tools:"
+        echo
+        echo -e " * \e[34mbash [service]\e[0m - access a bash console for a running process"
+        echo -e " * \e[34mdc\e[0m - run docker-compose commands directly"
+        exit 1
+        ;;
+esac

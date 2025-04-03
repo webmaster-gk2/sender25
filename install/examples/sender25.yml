@@ -1,0 +1,48 @@
+version: 2
+
+sender25:
+  web_hostname: sender25.yourdomain.com
+  web_protocol: https
+  smtp_hostname: sender25.yourdomain.com
+
+main_db:
+  host: 127.0.0.1
+  username: root
+  password: sender25
+  database: sender25
+
+message_db:
+  host: 127.0.0.1
+  username: root
+  password: sender25
+  prefix: sender25
+
+smtp_server:
+  default_bind_address: "::"
+
+dns:
+  # Specify the DNS records that you have configured. Refer to the documentation at
+  # https://github.com/atech/sender25/wiki/Domains-&-DNS-Configuration for further
+  # information about these.
+  mx_records:
+    - mx.sender25.yourdomain.com
+  spf_include: spf.sender25.yourdomain.com
+  return_path_domain: rp.sender25.yourdomain.com
+  route_domain: routes.sender25.yourdomain.com
+  track_domain: track.sender25.yourdomain.com
+
+smtp:
+  # Specify an SMTP server that can be used to send messages from the Sender25 management
+  # system to users. You can configure this to use a Sender25 mail server once the
+  # your installation has been set up.
+  host: 127.0.0.1
+  port: 2525
+  username: # Complete when Sender25 is running and you can
+  password: # generate the credentials within the interface.
+  from_name: Sender25
+  from_address: sender25@yourdomain.com
+
+rails:
+  # This is generated automatically by the config initialization. It should be a random
+  # string unique to your installation.
+  secret_key: {{secretkey}}
