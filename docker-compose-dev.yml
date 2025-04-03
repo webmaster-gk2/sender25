@@ -1,0 +1,41 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - .:/workspace:cached
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mariadb
+      - rabbitmq
+    environment:
+      MAIN_DB_HOST: mariadb
+      MAIN_DB_USERNAME: root
+      MESSAGE_DB_HOST: mariadb
+      MESSAGE_DB_USERNAME: root
+      RAILS_ENVIRONMENT: development
+
+  mariadb:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_DATABASE: sender25_development
+      MARIADB_ALLOW_EMPTY_PASSWORD: 'yes'
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 'yes'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  mysql-data: 
