@@ -359,7 +359,7 @@ This version of Sender25 introduces a number of larger changes. Please be sure t
 
 ### Features
 
-* load signing key path from POSTAL_SIGNING_KEY_PATH ([4a46f69](https://github.com/sender25server/sender25/commit/4a46f690de3010f1ae4d6c17739530a4eae35c09))
+* load signing key path from SENDER25_SIGNING_KEY_PATH ([4a46f69](https://github.com/sender25server/sender25/commit/4a46f690de3010f1ae4d6c17739530a4eae35c09))
 * support for configuring sender25 with environment variables ([854aa5e](https://github.com/sender25server/sender25/commit/854aa5ebc87de692b4691d48759aefd6fae9d133))
 
 
@@ -489,7 +489,7 @@ This version of Sender25 introduces a number of larger changes. Please be sure t
 - **smtp_server:** refactor mx lookups to randomly order mx records with the same priority ([bc2239](https://github.com/sender25hq/sender25/commit/bc22394fdd4f26dddd576840b49d7c25802cda7d))
 - **smtp_server:** updated line split logic, normalize all linebreaks to \r\n ([e8ba9e](https://github.com/sender25hq/sender25/commit/e8ba9ee4276e81af84ecb6ff6f0c024ef99f6ddc))
 - add resolv 0.2.1 ([eef1a3](https://github.com/sender25hq/sender25/commit/eef1a365a28e133750c4d5a4ac0eeeed223e303d))
-- always obey POSTAL_CONFIG_ROOT ([1d22ca](https://github.com/sender25hq/sender25/commit/1d22ca0f85b58b04aedde9071d9fc5ecd44af4de))
+- always obey SENDER25_CONFIG_ROOT ([1d22ca](https://github.com/sender25hq/sender25/commit/1d22ca0f85b58b04aedde9071d9fc5ecd44af4de))
 - fix issue with determining if an SMTP connection is encrypted or not ([73870d](https://github.com/sender25hq/sender25/commit/73870d6a92400fc8ec1493016817dfac074ffd06))
 - remove a few leftover fast server artifacts ([5cd06e](https://github.com/sender25hq/sender25/commit/5cd06e126b6caac502245754b360194365152415))
 - replace Fixnum with Integer ([52a23f](https://github.com/sender25hq/sender25/commit/52a23fa86f94c14dfc7edccbf414dda34c46bc12))

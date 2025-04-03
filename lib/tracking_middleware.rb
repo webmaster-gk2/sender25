@@ -9,7 +9,7 @@ class TrackingMiddleware
   end
 
   def call(env)
-    unless env["HTTP_X_POSTAL_TRACK_HOST"].to_i == 1
+    unless env["HTTP_X_SENDER25_TRACK_HOST"].to_i == 1
       return @app.call(env)
     end
 

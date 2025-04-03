@@ -49,7 +49,7 @@ RUN if [ "$VERSION" != "" ]; then echo $VERSION > VERSION; fi \
   && if [ "$BRANCH" != "" ]; then echo $BRANCH > BRANCH; fi
 
 # Set paths for when running in a container
-ENV POSTAL_CONFIG_FILE_PATH=/config/sender25.yml
+ENV SENDER25_CONFIG_FILE_PATH=/config/sender25.yml
 
 # Set the CMD
 ENTRYPOINT [ "/docker-entrypoint.sh" ]

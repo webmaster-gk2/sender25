@@ -4,22 +4,22 @@ This document contains all the environment variables which are available for thi
 
 | Name | Type | Description | Default |
 | ---- | ---- | ----------- | ------- |
-| `POSTAL_WEB_HOSTNAME` | String | The hostname that the Sender25 web interface runs on | sender25.example.com |
-| `POSTAL_WEB_PROTOCOL` | String | The HTTP protocol to use for the Sender25 web interface | https |
-| `POSTAL_SMTP_HOSTNAME` | String | The hostname that the Sender25 SMTP server runs on | sender25.example.com |
-| `POSTAL_USE_IP_POOLS` | Boolean | Should IP pools be enabled for this installation? | false |
-| `POSTAL_DEFAULT_MAXIMUM_DELIVERY_ATTEMPTS` | Integer | The maximum number of delivery attempts | 18 |
-| `POSTAL_DEFAULT_MAXIMUM_HOLD_EXPIRY_DAYS` | Integer | The number of days to hold a message before they will be expired | 7 |
-| `POSTAL_DEFAULT_SUPPRESSION_LIST_AUTOMATIC_REMOVAL_DAYS` | Integer | The number of days an address will remain in a suppression list before being removed | 30 |
-| `POSTAL_DEFAULT_SPAM_THRESHOLD` | Integer | The default threshold at which a message should be treated as spam | 5 |
-| `POSTAL_DEFAULT_SPAM_FAILURE_THRESHOLD` | Integer | The default threshold at which a message should be treated as spam failure | 20 |
-| `POSTAL_USE_LOCAL_NS_FOR_DOMAIN_VERIFICATION` | Boolean | Domain verification and checking usually checks with a domain's nameserver. Enable this to check with the server's local nameservers. | false |
-| `POSTAL_USE_RESENT_SENDER_HEADER` | Boolean | Append a Resend-Sender header to all outgoing e-mails | true |
-| `POSTAL_SIGNING_KEY_PATH` | String | Path to the private key used for signing | $config-file-root/signing.key |
-| `POSTAL_SMTP_RELAYS` | Array of strings | An array of SMTP relays in the format of smtp://host:port | [] |
-| `POSTAL_TRUSTED_PROXIES` | Array of strings | An array of IP addresses to trust for proxying requests to Sender25 (in addition to localhost addresses) | [] |
-| `POSTAL_QUEUED_MESSAGE_LOCK_STALE_DAYS` | Integer | The number of days after which to consider a lock as stale. Messages with stale locks will be removed and not retried. | 1 |
-| `POSTAL_BATCH_QUEUED_MESSAGES` | Boolean | When enabled queued messages will be de-queued in batches based on their destination | true |
+| `SENDER25_WEB_HOSTNAME` | String | The hostname that the Sender25 web interface runs on | sender25.example.com |
+| `SENDER25_WEB_PROTOCOL` | String | The HTTP protocol to use for the Sender25 web interface | https |
+| `SENDER25_SMTP_HOSTNAME` | String | The hostname that the Sender25 SMTP server runs on | sender25.example.com |
+| `SENDER25_USE_IP_POOLS` | Boolean | Should IP pools be enabled for this installation? | false |
+| `SENDER25_DEFAULT_MAXIMUM_DELIVERY_ATTEMPTS` | Integer | The maximum number of delivery attempts | 18 |
+| `SENDER25_DEFAULT_MAXIMUM_HOLD_EXPIRY_DAYS` | Integer | The number of days to hold a message before they will be expired | 7 |
+| `SENDER25_DEFAULT_SUPPRESSION_LIST_AUTOMATIC_REMOVAL_DAYS` | Integer | The number of days an address will remain in a suppression list before being removed | 30 |
+| `SENDER25_DEFAULT_SPAM_THRESHOLD` | Integer | The default threshold at which a message should be treated as spam | 5 |
+| `SENDER25_DEFAULT_SPAM_FAILURE_THRESHOLD` | Integer | The default threshold at which a message should be treated as spam failure | 20 |
+| `SENDER25_USE_LOCAL_NS_FOR_DOMAIN_VERIFICATION` | Boolean | Domain verification and checking usually checks with a domain's nameserver. Enable this to check with the server's local nameservers. | false |
+| `SENDER25_USE_RESENT_SENDER_HEADER` | Boolean | Append a Resend-Sender header to all outgoing e-mails | true |
+| `SENDER25_SIGNING_KEY_PATH` | String | Path to the private key used for signing | $config-file-root/signing.key |
+| `SENDER25_SMTP_RELAYS` | Array of strings | An array of SMTP relays in the format of smtp://host:port | [] |
+| `SENDER25_TRUSTED_PROXIES` | Array of strings | An array of IP addresses to trust for proxying requests to Sender25 (in addition to localhost addresses) | [] |
+| `SENDER25_QUEUED_MESSAGE_LOCK_STALE_DAYS` | Integer | The number of days after which to consider a lock as stale. Messages with stale locks will be removed and not retried. | 1 |
+| `SENDER25_BATCH_QUEUED_MESSAGES` | Boolean | When enabled queued messages will be de-queued in batches based on their destination | true |
 | `WEB_SERVER_DEFAULT_PORT` | Integer | The default port the web server should listen on unless overriden by the PORT environment variable | 5000 |
 | `WEB_SERVER_DEFAULT_BIND_ADDRESS` | String | The default bind address the web server should listen on unless overriden by the BIND_ADDRESS environment variable | 127.0.0.1 |
 | `WEB_SERVER_MAX_THREADS` | Integer | The maximum number of threads which can be used by the web server | 5 |
