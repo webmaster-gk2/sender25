@@ -4,7 +4,7 @@ Sender25 can be configured in two ways: using a YAML-based configuration file or
 
 If you choose to use environment variables, you don't need to provide a config file. A full list of environment variables is available in the `environment-variables.md` file in this directory. 
 
-To use a configuration file, the `POSTAL_CONFIG_FILE_PATH` environment variable will dictate where Sender25 will look for the config file. An example YAML file containing all available configuration is provided in the `yaml.yml` file in this directory. Remember to include the `version: 2` key/value in your configuration file.
+To use a configuration file, the `SENDER25_CONFIG_FILE_PATH` environment variable will dictate where Sender25 will look for the config file. An example YAML file containing all available configuration is provided in the `yaml.yml` file in this directory. Remember to include the `version: 2` key/value in your configuration file.
 
 ## Development 
 
@@ -16,7 +16,7 @@ By default, tests will use the `config/sender25/sender25.test.yml` configuration
 
 ## Containers
 
-Within a container, Sender25 will for a config file in `/config/sender25.yml` unless overriden by the `POSTAL_CONFIG_FILE_PATH` environment variable.
+Within a container, Sender25 will for a config file in `/config/sender25.yml` unless overriden by the `SENDER25_CONFIG_FILE_PATH` environment variable.
 
 ## Ports & Bind Addresses
 

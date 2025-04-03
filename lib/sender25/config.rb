@@ -27,7 +27,7 @@ module Sender25
     #
     # @return [String]
     def config_file_path
-      ENV.fetch("POSTAL_CONFIG_FILE_PATH", "config/sender25/sender25.yml")
+      ENV.fetch("SENDER25_CONFIG_FILE_PATH", "config/sender25/sender25.yml")
     end
 
     def initialize_config
@@ -39,7 +39,7 @@ module Sender25
       Dotenv.load(".env")
       sources << Konfig::Sources::Environment.new(ENV)
 
-      silence_config_messages = ENV.fetch("SILENCE_POSTAL_CONFIG_MESSAGES", "false") == "true"
+      silence_config_messages = ENV.fetch("SILENCE_SENDER25_CONFIG_MESSAGES", "false") == "true"
 
       # If a config file exists, we need to load that. Config files can
       # either be legacy (v1) or new (v2). Any file without a 'version'

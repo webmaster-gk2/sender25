@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ENV["POSTAL_CONFIG_FILE_PATH"] ||= "config/sender25/sender25.test.yml"
+ENV["SENDER25_CONFIG_FILE_PATH"] ||= "config/sender25/sender25.test.yml"
 
 require "dotenv"
 Dotenv.load(".env.test")
