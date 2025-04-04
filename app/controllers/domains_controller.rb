@@ -18,10 +18,24 @@ class DomainsController < ApplicationController
   end
 
   def index
-    if @server
-      @domains = @server.domains.order(:name).to_a
+    if params[:server_id]
+        @server = organization.servers.find_by_permalink!(params[:server_id])
+        @domains = @server.domains.order(:name)
     else
-      @domains = organization.domains.order(:name).to_a
+        @domains = organization.domains.order(:name)
+    end
+  
+    respond_to do |format|
+        format.html  # renders the default view
+        format.json do
+          render json: @domains.as_json(only: [
+            :uuid, :name,
+            :spf_status, :spf_error,
+            :dkim_status, :dkim_error,
+            :mx_status, :mx_error,
+            :return_path_status, :return_path_error
+          ])
+        end
     end
   end
 
