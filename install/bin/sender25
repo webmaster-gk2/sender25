@@ -48,18 +48,20 @@ call-hook() {
 }
 
 run-docker-compose() {
-    if [ ! -f "docker-compose.yml" ]; then
-        echo 'No docker-compose file available. Generating...'
-        cp templates/docker-compose.yml docker-compose.yml
+    COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
+
+    if [ ! -f "$COMPOSE_FILE" ]; then
+        echo "❌ docker-compose.yml não encontrado na raiz do projeto: $COMPOSE_FILE"
+        exit 1
     fi
 
-    if command -v docker-compose &> /dev/null
-    then
-        run "docker-compose -p sender25 $@"
+    if command -v docker-compose &> /dev/null; then
+        run "docker-compose -f $COMPOSE_FILE -p sender25 $@"
     else
-        run "docker compose -p sender25 $@"
+        run "docker compose -f $COMPOSE_FILE -p sender25 $@"
     fi
 }
+
 
 # Enter the root directory
 cd $ROOT_DIR

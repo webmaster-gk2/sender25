@@ -1,31 +1,43 @@
-# Configuring Sender25
+## ⚙️ Configurando o Sender25
 
-Sender25 can be configured in two ways: using a YAML-based configuration file or through environment variables.
+O Sender25 pode ser configurado de duas maneiras: utilizando um arquivo de configuração baseado em YAML ou por meio de variáveis de ambiente.
 
-If you choose to use environment variables, you don't need to provide a config file. A full list of environment variables is available in the `environment-variables.md` file in this directory. 
+Se você optar por usar variáveis de ambiente, **não é necessário fornecer um arquivo de configuração**. Uma lista completa de variáveis disponíveis está no arquivo `environment-variables.md` neste diretório.
 
-To use a configuration file, the `SENDER25_CONFIG_FILE_PATH` environment variable will dictate where Sender25 will look for the config file. An example YAML file containing all available configuration is provided in the `yaml.yml` file in this directory. Remember to include the `version: 2` key/value in your configuration file.
+Para usar um arquivo de configuração, a variável de ambiente `SENDER25_CONFIG_FILE_PATH` definirá onde o Sender25 deve procurar o arquivo. Um exemplo contendo todas as configurações disponíveis está no arquivo `yaml.yml`, também neste diretório. Lembre-se de incluir a chave `version: 2` no seu arquivo YAML.
 
-## Development 
+---
 
-When developing with Sender25, you can configure the application by placing a configuration file in `config/sender25/sender25.yml`. Alternatively, you can use environment variables by placing configuration in `.env` in the root of the application.
+## 👨‍💻 Desenvolvimento
 
-### Running tests
+Durante o desenvolvimento com Sender25, você pode configurar a aplicação colocando um arquivo de configuração em `config/sender25/sender25.yml`. Alternativamente, pode usar variáveis de ambiente em um arquivo `.env` na raiz do projeto.
 
-By default, tests will use the `config/sender25/sender25.test.yml` configuration file and the `.env.test` environment file.
+### 🧪 Execução de testes
 
-## Containers
+Por padrão, os testes utilizarão o arquivo de configuração `config/sender25/sender25.test.yml` e o arquivo de ambiente `.env.test`.
 
-Within a container, Sender25 will for a config file in `/config/sender25.yml` unless overriden by the `SENDER25_CONFIG_FILE_PATH` environment variable.
+---
 
-## Ports & Bind Addresses
+## 🐳 Containers
 
-The web & SMTP server listen on ports and addresses. The defaults for these can be set through configuration however, if you're running multiple instances of these on a single host you will need to specify different ports for each one.
+Dentro de um container, o Sender25 procurará pelo arquivo de configuração em `/config/sender25.yml`, a menos que seja sobrescrito pela variável de ambiente `SENDER25_CONFIG_FILE_PATH`.
 
-You can use the `PORT` and `BIND_ADDRESS` environment variables to provide instance-specific values for these processes.
+---
 
-Additionally, `HEALTH_SERVER_PORT` and `HEALTH_SERVER_BIND_ADDRESS`  can be used to set the port/address to use for running the health server alongside other processes.
+## 🌐 Portas e Endereços de Bind
 
-## Legacy configuration
+O servidor web e o servidor SMTP escutam em portas e endereços configuráveis. Os valores padrão podem ser definidos via configuração. Porém, se você for executar múltiplas instâncias no mesmo host, será necessário definir portas diferentes para cada uma.
 
-Legacy configuration files from Sender25 v1 and v2 are still supported. If you wish to use a new configuration option that is not available in the legacy format, you will need to upgrade the file to version 2.
+Você pode utilizar as variáveis de ambiente `PORT` e `BIND_ADDRESS` para fornecer valores específicos por instância.
+
+Adicionalmente, as variáveis `HEALTH_SERVER_PORT` e `HEALTH_SERVER_BIND_ADDRESS` podem ser usadas para configurar a porta/endereço do servidor de verificação de saúde, que pode rodar junto com os outros processos.
+
+---
+
+## 🕹️ Configuração legada
+
+Arquivos de configuração das versões anteriores do Sender25 (v1 e v2) ainda são suportados. No entanto, se você desejar utilizar uma nova opção de configuração que **não esteja disponível no formato legado**, será necessário atualizar o arquivo para a versão 2.
+
+--- 
+
+Se quiser posso te ajudar a adaptar esse conteúdo como parte da documentação oficial ou README do projeto. Deseja isso?
