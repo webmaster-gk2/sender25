@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: /opt/sender25
+      dockerfile: Dockerfile
+    command: sender25 web-server
+    network_mode: host
+    volumes:
+      - /opt/sender25/config:/config
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: /opt/sender25
+      dockerfile: Dockerfile
+    command: sender25 worker
+    network_mode: host
+    volumes:
+      - /opt/sender25/config:/config
+    restart: unless-stopped
+
+  runner:
+    profiles: ["tools"]
+    build:
+      context: /opt/sender25
+      dockerfile: Dockerfile
+    command: sender25
+    network_mode: host
+    volumes:
+      - /opt/sender25/config:/config

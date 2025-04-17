@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  smtp:
+    build:
+      context: /opt/sender25
+      dockerfile: Dockerfile
+    command: sender25 smtp-server
+    network_mode: host
+    cap_add:
+      - NET_BIND_SERVICE
+    volumes:
+      - /opt/sender25/config:/config
+    restart: unless-stopped
